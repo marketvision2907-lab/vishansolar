@@ -114,9 +114,9 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .comp-photo{position:relative;flex:none;width:38%;align-self:stretch}
 .comp-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .comp-card.bad .comp-photo{margin-right:-44px}
-.comp-card.bad .comp-photo img{-webkit-mask-image:linear-gradient(to right,#000 60%,transparent 100%);mask-image:linear-gradient(to right,#000 60%,transparent 100%)}
+.comp-card.bad .comp-photo img{object-position:38% center;-webkit-mask-image:linear-gradient(to right,#000 60%,transparent 100%);mask-image:linear-gradient(to right,#000 60%,transparent 100%)}
 .comp-card.good .comp-photo{margin-left:-44px}
-.comp-card.good .comp-photo img{-webkit-mask-image:linear-gradient(to left,#000 60%,transparent 100%);mask-image:linear-gradient(to left,#000 60%,transparent 100%)}
+.comp-card.good .comp-photo img{object-position:80% center;-webkit-mask-image:linear-gradient(to left,#000 60%,transparent 100%);mask-image:linear-gradient(to left,#000 60%,transparent 100%)}
 .comp-content{flex:1;min-width:0;position:relative;z-index:1;padding:26px 28px;display:flex;flex-direction:column;justify-content:center}
 .comp-head{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
 .comp-card.bad .comp-head{color:var(--red)}
