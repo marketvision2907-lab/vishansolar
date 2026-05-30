@@ -51,15 +51,15 @@ ul{list-style:none}
 
 /* ============ HEADER ============ */
 header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.nav{display:flex;align-items:center;height:70px}
-.logo{flex:none;display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;color:var(--navy);letter-spacing:-.01em}
-.logo img.mark{width:42px;height:42px}
+.nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:70px}
+.logo{justify-self:start;display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;color:var(--navy);letter-spacing:-.01em}
+.logo img.mark{height:40px;width:auto}
 .logo small{display:block;font-family:var(--body);font-weight:500;font-size:8px;letter-spacing:.06em;color:var(--amber-dark);text-transform:uppercase;line-height:1;margin-top:1px}
 .logo .lname b{color:var(--amber-dark);font-weight:800}
-.navlinks{flex:1;display:flex;justify-content:center;gap:26px;align-items:center}
+.navlinks{justify-self:center;display:flex;gap:26px;align-items:center}
 .navlinks a{font-weight:500;font-size:14.5px;color:#33415C;transition:.15s;white-space:nowrap}
 .navlinks a:hover{color:var(--blue)}
-.nav-cta{flex:none;display:flex;align-items:center;gap:14px}
+.nav-cta{justify-self:end;display:flex;align-items:center;gap:14px}
 .burger{display:none;background:none;border:none;cursor:pointer;width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
 .burger span{display:block;width:20px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
 
@@ -236,6 +236,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 .foot-top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.1fr 1fr;gap:28px;padding-bottom:36px;border-bottom:1px solid rgba(255,255,255,.1)}
 .foot-logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:20px;color:#fff;margin-bottom:14px}
+.foot-logo img.mark{height:32px;width:auto}
 .foot-logo small{display:block;font-family:var(--body);font-weight:500;font-size:8px;letter-spacing:.06em;color:var(--amber);text-transform:uppercase}
 .foot-col h5{font-family:var(--display);color:#fff;font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:.02em}
 .foot-col li{margin-bottom:9px;font-size:13.5px}
@@ -307,7 +308,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 <header>
   <div class="container nav">
     <a href="#" class="logo">
-      <img class="mark" src="assets/logo-mark.svg" alt="Vishan Solar logo mark" width="42" height="42"/>
+      <img class="mark" src="assets/logo.png" alt="Vishan Solar logo"/>
       <span class="lname">VISHAN <b>SOLAR</b><small>The Smarter Way to Power Your Home</small></span>
     </a>
     <nav class="navlinks">
@@ -593,7 +594,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
     <div class="foot-top">
       <div>
         <div class="foot-logo">
-          <svg viewBox="0 0 40 40" width="30" height="30" fill="none"><circle cx="20" cy="20" r="8" fill="#F6A609"/><g stroke="#F6A609" stroke-width="2.4" stroke-linecap="round"><line x1="20" y1="4" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="36"/><line x1="4" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="36" y2="20"/></g></svg>
+          <img class="mark" src="assets/logo.png" alt="Vishan Solar logo"/>
           <span>VISHAN SOLAR<small>The Smarter Way to Power Your Home</small></span>
         </div>
         <p style="font-size:13px;line-height:1.5;color:#9aa9c7">Premium rooftop solar for Chennai homeowners — lower bills, full paperwork support, decades of clean savings.</p>
