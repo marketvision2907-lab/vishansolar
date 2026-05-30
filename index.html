@@ -201,7 +201,15 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .link-arrow svg{width:16px;height:16px}
 
 /* ============ TESTIMONIALS ============ */
-.testi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.testi-carousel{position:relative}
+.testi-viewport{overflow:hidden}
+.testi-track{display:flex;gap:16px;will-change:transform}
+.testi-track .testi{flex:0 0 auto}
+.testi-arrow{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;z-index:5;color:var(--navy);transition:.15s}
+.testi-arrow:hover{color:var(--blue);box-shadow:var(--shadow-lg)}
+.testi-arrow svg{width:20px;height:20px}
+.testi-arrow.prev{left:-22px}
+.testi-arrow.next{right:-22px}
 .testi{aspect-ratio:9/16;border-radius:16px;overflow:hidden;position:relative;background:linear-gradient(160deg,#2a4a82,#16335f);box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:flex-end;padding:18px;color:#fff}
 .testi .media{position:absolute;inset:0;z-index:0}
 .testi .media video,.testi .media img{width:100%;height:100%;object-fit:cover;display:block}
@@ -271,7 +279,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .hero h1{font-size:44px}
   .hero-grid{gap:48px}
   .hero-content{padding-left:0}
-  .road,.why,.gal-grid,.testi-grid{grid-template-columns:repeat(2,1fr)}
+  .road,.why,.gal-grid{grid-template-columns:repeat(2,1fr)}
   .road::before{display:none}
   .warranty .grid{grid-template-columns:repeat(2,1fr)}
   .war-item:nth-child(2){border-right:none}
@@ -299,7 +307,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .hero{padding:38px 0 46px;min-height:auto}
   .hero h1{font-size:31px}
   .hero p.sub{font-size:15.5px}
-  .road,.why,.gal-grid,.testi-grid,.faq-grid,.foot-top,.warranty .grid{grid-template-columns:1fr}
+  .road,.why,.gal-grid,.faq-grid,.foot-top,.warranty .grid{grid-template-columns:1fr}
   .calc-out{grid-template-columns:repeat(2,1fr)}
   .calc-card,.vs-card,.lead-form{padding:20px}
   .bill-val{font-size:28px}
@@ -556,11 +564,12 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 <section class="section" id="testimonials" style="background:var(--soft)">
   <div class="container">
     <h2 class="center" style="font-size:28px;color:var(--navy);margin-bottom:36px">What Homeowners Say</h2>
-    <div class="testi-grid">
-      <div class="testi"><div class="media"><!-- drop <video src="..." muted loop playsinline></video> or <img> here --></div><div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="info"><b>Ramesh K.</b><span class="loc">Velachery, Chennai</span><span class="saved">Saved ₹9,000 Every Month</span></div><span class="dur">0:34</span></div>
-      <div class="testi"><div class="media"><!-- drop <video src="..." muted loop playsinline></video> or <img> here --></div><div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="info"><b>Lakshmi R.</b><span class="loc">Anna Nagar, Chennai</span><span class="saved">Saved ₹8,200 Every Month</span></div><span class="dur">0:32</span></div>
-      <div class="testi"><div class="media"><!-- drop <video src="..." muted loop playsinline></video> or <img> here --></div><div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="info"><b>Suresh B.</b><span class="loc">Medavakkam, Chennai</span><span class="saved">Saved ₹7,800 Every Month</span></div><span class="dur">0:41</span></div>
-      <div class="testi"><div class="media"><!-- drop <video src="..." muted loop playsinline></video> or <img> here --></div><div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="info"><b>Karthik M.</b><span class="loc">Porur, Chennai</span><span class="saved">Saved ₹7,300 Every Month</span></div><span class="dur">0:28</span></div>
+    <div class="testi-carousel">
+      <button class="testi-arrow prev" id="testiPrev" aria-label="Previous testimonials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="testi-viewport">
+        <div class="testi-track" id="testiTrack"></div>
+      </div>
+      <button class="testi-arrow next" id="testiNext" aria-label="Next testimonials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg></button>
     </div>
   </div>
 </section>
@@ -695,6 +704,68 @@ faqs.forEach(function(f){
   d.querySelector('.faq-q').onclick=function(){d.classList.toggle('open');};
   grid.appendChild(d);
 });
+
+/* ---- Testimonials: extendable list. Add more {name,location,savings,duration,video} and they auto-join the carousel. ---- */
+var TESTIMONIALS=[
+ {name:"Ramesh K.", location:"Velachery, Chennai",  savings:"₹9,000", duration:"0:34", video:""},
+ {name:"Lakshmi R.", location:"Anna Nagar, Chennai", savings:"₹8,200", duration:"0:32", video:""},
+ {name:"Suresh B.",  location:"Medavakkam, Chennai", savings:"₹7,800", duration:"0:41", video:""},
+ {name:"Karthik M.", location:"Porur, Chennai",      savings:"₹7,300", duration:"0:28", video:""}
+];
+(function(){
+  var track=document.getElementById('testiTrack');
+  if(!track) return;
+  var viewport=track.parentElement;
+  var prevBtn=document.getElementById('testiPrev'), nextBtn=document.getElementById('testiNext');
+  var GAP=16, N=TESTIMONIALS.length;
+  var perView, index, step, animating=false;
+  function mod(a,n){return ((a%n)+n)%n;}
+  function calcPerView(){var w=window.innerWidth;return w<=560?1:(w<=900?2:4);}
+  function cardHTML(t){
+    var media=t.video?'<video src="'+t.video+'" muted loop playsinline></video>':'<!-- drop <video src="..." muted loop playsinline></video> or <img> here -->';
+    return '<div class="testi"><div class="media">'+media+'</div>'
+      +'<div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>'
+      +'<div class="info"><b>'+t.name+'</b><span class="loc">'+t.location+'</span><span class="saved">Saved '+t.savings+' Every Month</span></div>'
+      +'<span class="dur">'+t.duration+'</span></div>';
+  }
+  function build(){
+    perView=calcPerView();
+    var html='';
+    for(var k=0;k<perView;k++) html+=cardHTML(TESTIMONIALS[mod(N-perView+k,N)]); // left clones
+    for(var i=0;i<N;i++) html+=cardHTML(TESTIMONIALS[i]);                        // real
+    for(var k2=0;k2<perView;k2++) html+=cardHTML(TESTIMONIALS[mod(k2,N)]);        // right clones
+    track.innerHTML=html;
+    layout();
+    index=perView; setX(false);
+  }
+  function layout(){
+    var vw=viewport.clientWidth;
+    var cardW=(vw-GAP*(perView-1))/perView;
+    step=cardW+GAP;
+    [].forEach.call(track.children,function(c){c.style.flex='0 0 '+cardW+'px';c.style.width=cardW+'px';});
+  }
+  function setX(animate){
+    track.style.transition=animate?'transform .45s ease':'none';
+    track.style.transform='translateX('+(-index*step)+'px)';
+  }
+  function go(dir){ if(animating)return; animating=true; index+=dir; setX(true); }
+  track.addEventListener('transitionend',function(){
+    animating=false;
+    if(index>=N+perView){index-=N;setX(false);}
+    else if(index<perView){index+=N;setX(false);}
+  });
+  nextBtn.onclick=function(){go(1);};
+  prevBtn.onclick=function(){go(-1);};
+  var startX=null,dragging=false;
+  viewport.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;dragging=true;},{passive:true});
+  viewport.addEventListener('touchend',function(e){
+    if(!dragging||startX===null)return; dragging=false;
+    var dx=e.changedTouches[0].clientX-startX; startX=null;
+    if(Math.abs(dx)>40) go(dx<0?1:-1);
+  });
+  var rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(build,150);});
+  build();
+})();
 
 document.getElementById('leadForm').addEventListener('submit',async function(e){
   e.preventDefault();
