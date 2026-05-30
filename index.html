@@ -64,13 +64,10 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .burger span{display:block;width:20px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
 
 /* ============ HERO ============ */
-.hero{position:relative;color:var(--ink);padding:60px 0 70px;overflow:hidden;min-height:560px;background:var(--soft)}
-.hero-photo{border-radius:var(--radius-lg);background-image:url('assets/hero-bg.jpg');background-size:cover;background-position:center;min-height:260px;box-shadow:var(--shadow-lg);border:1px solid var(--line)}
-.hero-grid{display:grid;grid-template-columns:.9fr 1.15fr 1fr;gap:32px;align-items:stretch;position:relative}
-.hero-copy{text-align:center;display:flex;flex-direction:column;align-items:center}
-.hero-copy .hero-tag{justify-content:center}
-.hero-copy .hero-ctas{justify-content:center}
-.hero-copy .trust-row{margin-left:auto;margin-right:auto}
+.hero{position:relative;color:var(--ink);padding:60px 0 70px;overflow:hidden;min-height:560px}
+.hero-bg{position:absolute;inset:0;z-index:-2;background-image:url('assets/hero-bg.jpg');background-size:cover;background-position:center right}
+.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(244,248,253,.97) 0%,rgba(244,248,253,.9) 30%,rgba(244,248,253,.55) 48%,rgba(244,248,253,.08) 66%,rgba(244,248,253,0) 80%)}
+.hero-grid{display:grid;grid-template-columns:1.18fr .9fr;gap:44px;align-items:start;position:relative}
 .hero-tag{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-dark);display:flex;align-items:center;gap:7px;margin-bottom:16px}
 .hero h1{font-size:54px;font-weight:800;line-height:1.04;margin-bottom:18px;color:var(--navy)}
 .hero h1 .y{color:var(--amber)}
@@ -271,7 +268,8 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .navlinks{display:none}
   .nav-cta .btn{display:none}
   .burger{display:block}
-  .hero-grid{grid-template-columns:1fr;gap:28px}
+  .hero-bg::after{background:linear-gradient(180deg,rgba(244,248,253,.96),rgba(244,248,253,.8))}
+  .hero-grid{grid-template-columns:1fr;gap:32px}
   .calc-wrap,.map-wrap,.compare{grid-template-columns:1fr}
   .vs-badge{display:none}
   .comp-top,.comp-card.good .comp-top{flex-direction:column}
@@ -327,10 +325,9 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="lead">
+  <div class="hero-bg"></div>
   <div class="container hero-grid">
-    <div class="hero-photo" role="img" aria-label="Rooftop solar installation on a home"></div>
-
-    <div class="hero-copy">
+    <div>
       <div class="hero-tag">⚡ Premium Rooftop Solar Solutions for Homeowners</div>
       <h1>Eliminate Your Electricity Bill for the Next <span class="y">25+ Years</span></h1>
       <p class="sub">High-performance rooftop solar systems designed for homeowners who want lower electricity costs — without technical confusion, paperwork stress, or unreliable vendors.</p>
