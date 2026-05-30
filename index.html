@@ -224,14 +224,12 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .testi .dur{position:absolute;top:14px;right:14px;font-size:11px;color:#fff;background:rgba(8,20,46,.55);padding:3px 8px;border-radius:50px;z-index:2}
 
 /* ============ MAP ============ */
-.map-wrap{display:grid;grid-template-columns:.85fr 1.15fr;gap:28px;align-items:center}
-.map-wrap h2{font-size:30px;color:var(--navy);margin-bottom:14px}
-.map-wrap p{color:var(--muted);font-size:15px;margin-bottom:22px;line-height:1.6}
-.map-canvas{position:relative;height:340px;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(160deg,#dcebd6,#cfe3ef 60%,#a9cdec);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
-.map-canvas::after{content:"";position:absolute;right:0;top:0;bottom:0;width:32%;background:linear-gradient(90deg,transparent,#9fc6ea)}
-.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;font-family:var(--display);font-weight:600;font-size:11.5px;color:var(--navy)}
-.pin .dot{width:24px;height:24px;border-radius:50% 50% 50% 0;background:var(--blue);transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.2);margin-bottom:6px}
-.pin .lbl{background:#fff;padding:3px 9px;border-radius:50px;box-shadow:var(--shadow-sm);white-space:nowrap}
+#map{position:relative;overflow:hidden}
+#map .container{position:relative;z-index:1;min-height:420px;display:flex;align-items:center}
+.map-text{max-width:460px}
+.map-text h2{font-size:30px;color:var(--navy);margin-bottom:14px}
+.map-text p{color:var(--muted);font-size:15px;margin-bottom:22px;line-height:1.6}
+.map-bg{position:absolute;top:0;right:0;bottom:0;width:62%;z-index:0;background-image:url('assets/map.png');background-size:cover;background-position:center right;-webkit-mask-image:linear-gradient(to left,#000 58%,transparent 100%);mask-image:linear-gradient(to left,#000 58%,transparent 100%)}
 
 /* ============ FAQ ============ */
 .faq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
@@ -295,7 +293,11 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .hero-bg::after{background:linear-gradient(180deg,rgba(244,248,253,.96),rgba(244,248,253,.82))}
   .hero-grid{grid-template-columns:1fr;gap:36px;max-width:520px}
   .hero-content{padding-left:0}
-  .calc-wrap,.map-wrap,.compare{grid-template-columns:1fr}
+  .calc-wrap,.compare{grid-template-columns:1fr}
+  #map{display:flex;flex-direction:column}
+  #map .container{order:1;flex-direction:column;align-items:stretch;min-height:0}
+  .map-text{max-width:none}
+  .map-bg{order:2;position:relative;width:100%;height:300px;margin-top:24px;background-position:center;-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 82%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 82%,transparent 100%)}
   .vs-badge{display:none}
   .comp-card{flex-direction:column;min-height:0}
   .comp-card.good{flex-direction:column-reverse}
@@ -581,22 +583,13 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 </section>
 
 <!-- ============ MAP ============ -->
-<section class="section">
-  <div class="container map-wrap">
-    <div>
+<section class="section" id="map">
+  <div class="map-bg"></div>
+  <div class="container">
+    <div class="map-text">
       <h2>Serving Homeowners Across Chennai</h2>
       <p>We are proudly serving homeowners across major parts of Chennai with premium solar solutions.</p>
       <a href="#lead" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-    </div>
-    <div class="map-canvas">
-      <div class="pin" style="left:30%;top:34%"><span class="dot"></span><span class="lbl">Anna Nagar</span></div>
-      <div class="pin" style="left:52%;top:28%"><span class="dot"></span><span class="lbl">Velachery</span></div>
-      <div class="pin" style="left:33%;top:55%"><span class="dot"></span><span class="lbl">Porur</span></div>
-      <div class="pin" style="left:56%;top:46%"><span class="dot"></span><span class="lbl">Tambaram</span></div>
-      <div class="pin" style="left:72%;top:40%"><span class="dot"></span><span class="lbl">OMR</span></div>
-      <div class="pin" style="left:64%;top:62%"><span class="dot"></span><span class="lbl">Sholinganallur</span></div>
-      <div class="pin" style="left:80%;top:56%"><span class="dot"></span><span class="lbl">Perungudi</span></div>
-      <div class="pin" style="left:38%;top:74%"><span class="dot"></span><span class="lbl">Chromepet</span></div>
     </div>
   </div>
 </section>
