@@ -51,15 +51,15 @@ ul{list-style:none}
 
 /* ============ HEADER ============ */
 header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:70px}
-.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;color:var(--navy);letter-spacing:-.01em}
-.logo .mark{width:34px;height:34px;display:grid;place-items:center}
+.nav{display:flex;align-items:center;height:70px}
+.logo{flex:none;display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;color:var(--navy);letter-spacing:-.01em}
+.logo img.mark{width:42px;height:42px}
 .logo small{display:block;font-family:var(--body);font-weight:500;font-size:8px;letter-spacing:.06em;color:var(--amber-dark);text-transform:uppercase;line-height:1;margin-top:1px}
 .logo .lname b{color:var(--amber-dark);font-weight:800}
-.navlinks{display:flex;gap:26px;align-items:center}
-.navlinks a{font-weight:500;font-size:14.5px;color:#33415C;transition:.15s}
+.navlinks{flex:1;display:flex;justify-content:center;gap:26px;align-items:center}
+.navlinks a{font-weight:500;font-size:14.5px;color:#33415C;transition:.15s;white-space:nowrap}
 .navlinks a:hover{color:var(--blue)}
-.nav-cta{display:flex;align-items:center;gap:14px}
+.nav-cta{flex:none;display:flex;align-items:center;gap:14px}
 .burger{display:none;background:none;border:none;cursor:pointer;width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
 .burger span{display:block;width:20px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
 
@@ -307,9 +307,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 <header>
   <div class="container nav">
     <a href="#" class="logo">
-      <span class="mark">
-        <svg viewBox="0 0 40 40" width="34" height="34" fill="none"><circle cx="20" cy="20" r="8" fill="#F6A609"/><g stroke="#F6A609" stroke-width="2.4" stroke-linecap="round"><line x1="20" y1="3" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37"/><line x1="3" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37" y2="20"/><line x1="8" y1="8" x2="12" y2="12"/><line x1="28" y1="28" x2="32" y2="32"/><line x1="32" y1="8" x2="28" y2="12"/><line x1="12" y1="28" x2="8" y2="32"/></g></svg>
-      </span>
+      <img class="mark" src="assets/logo-mark.svg" alt="Vishan Solar logo mark" width="42" height="42"/>
       <span class="lname">VISHAN <b>SOLAR</b><small>The Smarter Way to Power Your Home</small></span>
     </a>
     <nav class="navlinks">
