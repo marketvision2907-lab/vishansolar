@@ -109,15 +109,15 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 #how .container{max-width:1500px}
 .compare{display:grid;grid-template-columns:1fr 1fr;gap:28px;position:relative}
 .comp-card{display:flex;align-items:stretch;border-radius:var(--radius-lg);border:1px solid var(--line);box-shadow:var(--shadow-sm);overflow:hidden;min-height:360px}
-.comp-card.bad{background:linear-gradient(135deg,#fff 0%,#fdf1f1 100%)}
-.comp-card.good{background:linear-gradient(135deg,#fff 0%,#ecf7f0 100%)}
+.comp-card.bad{background:#fdf1f1}
+.comp-card.good{background:#ecf7f0}
 .comp-photo{position:relative;flex:none;width:38%;align-self:stretch}
 .comp-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .comp-photo::after{content:"";position:absolute;inset:0;pointer-events:none}
-.comp-card.bad .comp-photo{margin-right:-28px}
-.comp-card.bad .comp-photo::after{background:linear-gradient(to right,transparent 55%,#fdf1f1 100%)}
-.comp-card.good .comp-photo{margin-left:-28px}
-.comp-card.good .comp-photo::after{background:linear-gradient(to left,transparent 55%,#ecf7f0 100%)}
+.comp-card.bad .comp-photo{margin-right:-38px}
+.comp-card.bad .comp-photo::after{background:linear-gradient(to right,transparent 0%,rgba(253,241,241,0) 35%,#fdf1f1 92%)}
+.comp-card.good .comp-photo{margin-left:-38px}
+.comp-card.good .comp-photo::after{background:linear-gradient(to left,transparent 0%,rgba(236,247,240,0) 35%,#ecf7f0 92%)}
 .comp-content{flex:1;min-width:0;position:relative;z-index:1;padding:26px 28px;display:flex;flex-direction:column;justify-content:center}
 .comp-head{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
 .comp-card.bad .comp-head{color:var(--red)}
@@ -286,8 +286,8 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .comp-card{flex-direction:column;min-height:0}
   .comp-card.good{flex-direction:column-reverse}
   .comp-photo,.comp-card.bad .comp-photo,.comp-card.good .comp-photo{width:100%;height:200px;margin:0}
-  .comp-card.bad .comp-photo::after{background:linear-gradient(to bottom,transparent 55%,#fdf1f1 100%)}
-  .comp-card.good .comp-photo::after{background:linear-gradient(to top,transparent 55%,#ecf7f0 100%)}
+  .comp-card.bad .comp-photo::after{background:linear-gradient(to bottom,transparent 45%,#fdf1f1 95%)}
+  .comp-card.good .comp-photo::after{background:linear-gradient(to top,transparent 45%,#ecf7f0 95%)}
   .trust-row{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:560px){
