@@ -64,26 +64,27 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .burger span{display:block;width:20px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
 
 /* ============ HERO ============ */
-.hero{position:relative;color:var(--ink);padding:60px 0 70px;overflow:hidden;min-height:560px}
-.hero-bg{position:absolute;inset:0;z-index:-2;background-image:url('assets/hero-bg.jpg');background-size:cover;background-position:center center}
-.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(244,248,253,0) 0%,rgba(244,248,253,.82) 16%,rgba(244,248,253,.93) 38%,rgba(244,248,253,.72) 54%,rgba(244,248,253,0) 67%)}
-.hero-grid{display:grid;grid-template-columns:1.18fr .9fr;gap:44px;align-items:start;position:relative}
-.hero-tag{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-dark);display:flex;align-items:center;gap:7px;margin-bottom:16px}
-.hero h1{font-size:54px;font-weight:800;line-height:1.04;margin-bottom:18px;color:var(--navy)}
+.hero{position:relative;color:var(--ink);padding:64px 0 74px;overflow:hidden;min-height:560px}
+.hero-bg{position:absolute;inset:0;z-index:-2;background-image:url('assets/hero-bg.jpg');background-size:cover;background-position:left center}
+.hero-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 56% 82% at 43% 47%,rgba(244,248,253,.88) 0%,rgba(244,248,253,.66) 42%,rgba(244,248,253,.22) 68%,rgba(244,248,253,0) 85%)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:110px;align-items:center;position:relative;max-width:1400px}
+.hero-content{text-align:center;padding-left:140px;display:flex;flex-direction:column;align-items:center}
+.hero-tag{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-dark);display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:16px}
+.hero h1{font-size:56px;font-weight:800;line-height:1.0;margin-bottom:18px;color:var(--navy);max-width:650px}
 .hero h1 .y{color:var(--amber)}
-.hero p.sub{font-size:17px;color:#3f4d68;max-width:540px;margin-bottom:22px;line-height:1.55}
+.hero p.sub{font-size:17px;color:#3f4d68;max-width:600px;margin:0 auto 22px;line-height:1.55}
 .subsidy-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid #f0dcae;padding:11px 18px;border-radius:50px;font-size:14.5px;font-weight:500;margin-bottom:26px;box-shadow:var(--shadow-sm);color:var(--ink)}
 .subsidy-pill b{font-weight:700}
 .subsidy-pill .ic{color:var(--amber)}
-.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px}
-.trust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:640px}
-.trust-card{background:#fff;color:var(--ink);border-radius:13px;padding:13px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
+.trust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;max-width:580px;margin:0 auto}
+.trust-card{background:#fff;color:var(--ink);text-align:left;border-radius:13px;padding:13px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);border:1px solid var(--line)}
 .trust-card .ic{width:26px;height:26px;color:var(--blue)}
 .trust-card b{font-family:var(--display);font-size:15px;font-weight:700;line-height:1.1}
 .trust-card span{font-size:11.5px;color:var(--muted);line-height:1.25}
 
 /* lead form */
-.lead-form{background:#fff;color:var(--ink);border-radius:var(--radius-lg);padding:26px;box-shadow:var(--shadow-lg);border:1px solid var(--line)}
+.lead-form{background:#fff;color:var(--ink);border-radius:var(--radius-lg);padding:34px 28px;box-shadow:var(--shadow-lg);border:1px solid var(--line)}
 .lead-form h3{font-size:21px;font-weight:700;margin-bottom:6px;color:var(--navy)}
 .lead-form .lf-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.4}
 .field{margin-bottom:13px}
@@ -257,6 +258,8 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 /* ============ RESPONSIVE ============ */
 @media(max-width:1024px){
   .hero h1{font-size:44px}
+  .hero-grid{gap:48px}
+  .hero-content{padding-left:0}
   .road,.why,.gal-grid,.testi-grid{grid-template-columns:repeat(2,1fr)}
   .road::before{display:none}
   .warranty .grid{grid-template-columns:repeat(2,1fr)}
@@ -268,8 +271,9 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .navlinks{display:none}
   .nav-cta .btn{display:none}
   .burger{display:block}
-  .hero-bg::after{background:linear-gradient(180deg,rgba(244,248,253,.96),rgba(244,248,253,.8))}
-  .hero-grid{grid-template-columns:1fr;gap:32px}
+  .hero-bg::after{background:linear-gradient(180deg,rgba(244,248,253,.96),rgba(244,248,253,.82))}
+  .hero-grid{grid-template-columns:1fr;gap:36px;max-width:520px}
+  .hero-content{padding-left:0}
   .calc-wrap,.map-wrap,.compare{grid-template-columns:1fr}
   .vs-badge{display:none}
   .comp-top,.comp-card.good .comp-top{flex-direction:column}
@@ -327,7 +331,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 <section class="hero" id="lead">
   <div class="hero-bg"></div>
   <div class="container hero-grid">
-    <div>
+    <div class="hero-content">
       <div class="hero-tag">⚡ Premium Rooftop Solar Solutions for Homeowners</div>
       <h1>Eliminate Your Electricity Bill for the Next <span class="y">25+ Years</span></h1>
       <p class="sub">High-performance rooftop solar systems designed for homeowners who want lower electricity costs — without technical confusion, paperwork stress, or unreliable vendors.</p>
