@@ -226,13 +226,18 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 /* ============ MAP ============ */
 #map{position:relative;overflow:hidden}
 #map .container{position:relative;z-index:1;min-height:460px;display:flex;align-items:center}
-.map-text{max-width:440px;padding-right:20px}
-.map-eyebrow{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:12px}
-.map-text h2{font-size:31px;line-height:1.18;color:var(--navy);margin-bottom:16px}
-.map-text p{color:var(--muted);font-size:15px;margin-bottom:20px;line-height:1.65}
-.map-stats{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px}
-.map-stats .chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm);border-radius:50px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)}
-.map-stats .chip b{color:var(--blue);font-family:var(--display);font-weight:800}
+.map-text{max-width:460px;padding-right:20px}
+.map-eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:14px}
+.map-eyebrow::before{content:"";width:26px;height:2px;border-radius:2px;background:var(--amber)}
+.map-text h2{font-size:32px;line-height:1.16;color:var(--navy);margin-bottom:14px}
+.map-text p{color:var(--muted);font-size:15px;margin-bottom:24px;line-height:1.65}
+.map-stats{display:flex;align-items:stretch;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm);border-radius:14px;padding:16px 6px;margin-bottom:24px}
+.map-stats .stat{flex:1;text-align:center;padding:0 10px;position:relative}
+.map-stats .stat+.stat::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:64%;width:1px;background:var(--line)}
+.map-stats .stat .num{font-family:var(--display);font-size:23px;font-weight:800;color:var(--blue);line-height:1}
+.map-stats .stat .lab{display:block;font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.25}
+.map-reassure{display:flex;align-items:center;gap:7px;margin-top:14px;font-size:12.5px;color:var(--muted)}
+.map-reassure svg{width:15px;height:15px;color:var(--green);flex:none}
 .map-bg{position:absolute;top:0;right:0;bottom:0;width:62%;z-index:0;background-image:url('assets/map.png');background-size:cover;background-position:center right;-webkit-mask-image:linear-gradient(to left,#000 58%,transparent 100%);mask-image:linear-gradient(to left,#000 58%,transparent 100%)}
 
 /* ============ FAQ ============ */
@@ -595,11 +600,12 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
       <h2>Serving Homeowners Across Chennai</h2>
       <p>We are proudly serving homeowners across major parts of Chennai with premium solar solutions.</p>
       <div class="map-stats">
-        <span class="chip"><b>500+</b> Homes Powered</span>
-        <span class="chip"><b>15+</b> Areas Served</span>
-        <span class="chip">Chennai-wide Support</span>
+        <div class="stat"><div class="num">500+</div><span class="lab">Homes Powered</span></div>
+        <div class="stat"><div class="num">15+</div><span class="lab">Areas Served</span></div>
+        <div class="stat"><div class="num">24h</div><span class="lab">Response Time</span></div>
       </div>
       <a href="#lead" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="map-reassure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg> Free site visit &amp; quote — no obligation</div>
     </div>
   </div>
 </section>
