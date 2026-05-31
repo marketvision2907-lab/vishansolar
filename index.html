@@ -61,6 +61,7 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .navlinks a{font-weight:500;font-size:14.5px;color:#33415C;transition:.15s;white-space:nowrap}
 .navlinks a:hover{color:var(--blue)}
 .nav-cta{justify-self:end;display:flex;align-items:center;gap:14px}
+.nav-cta-btn .cta-short{display:none}
 .burger{display:none;background:none;border:none;cursor:pointer;width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
 .burger span{display:block;width:20px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
 
@@ -357,6 +358,23 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .testi-arrow svg{width:19px;height:19px}
   .foot-top{gap:8px}
 }
+@media(max-width:480px){
+  /* 1) HEADER: logo (far left) + Get Quote button + hamburger (far right), one row */
+  .nav{display:flex;justify-content:space-between;gap:10px}
+  .logo{flex:0 1 auto;min-width:0;font-size:15px}
+  .nav-cta{flex:none;gap:8px}
+  .nav-cta .btn{display:inline-flex}
+  .nav-cta-btn .cta-full{display:none}
+  .nav-cta-btn .cta-short{display:inline}
+  .nav-cta-btn{padding:11px 14px;font-size:13px;gap:6px}
+  .nav-cta-btn svg{width:15px;height:15px}
+  /* 2) HERO: let the house photo show through — much lighter overlay */
+  .hero-bg::after{background:linear-gradient(180deg,rgba(244,248,253,.66) 0%,rgba(244,248,253,.42) 45%,rgba(244,248,253,.12) 100%)}
+  /* 3) FINAL CTA: comfortable buttons, breathing room */
+  .final-cta .inner{padding:40px 0}
+  .final-cta .ctas{gap:10px}
+  .final-cta .ctas .btn{padding:12px 18px;font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -377,7 +395,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-cta">
-      <a href="#lead" class="btn btn-blue">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#lead" class="btn btn-blue nav-cta-btn"><span class="cta-full">Get Free Solar Consultation </span><span class="cta-short">Get Quote</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <button class="burger" id="burger" aria-label="menu"><span></span><span></span><span></span></button>
     </div>
   </div>
