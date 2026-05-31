@@ -103,8 +103,12 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 /* ============ LOGO STRIP ============ */
 .logos{padding:34px 0;border-bottom:1px solid var(--line)}
 .logos .lab{text-align:center;font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:22px}
-.logo-track{display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap}
-.brand{font-family:var(--display);font-weight:800;font-size:19px;color:#9aa7bd;opacity:.9;letter-spacing:-.01em;white-space:nowrap;transition:.2s;filter:grayscale(1)}
+.logo-marquee{position:relative;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.logo-track{display:flex;align-items:center;width:max-content;animation:logoScroll 38s linear infinite}
+.logo-marquee:hover .logo-track{animation-play-state:paused}
+.logo-track img{height:42px;width:auto;object-fit:contain;margin:0 34px;flex:none;display:block}
+@keyframes logoScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.logo-track{animation:none}}
 .brand:hover{filter:grayscale(0);color:var(--navy);opacity:1}
 
 /* ============ COMPARISON ============ */
@@ -319,6 +323,8 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 @media(max-width:560px){
   .container{padding:0 18px}
   .section{padding:48px 0}
+  .logo-track img{height:32px;margin:0 22px}
+  .logo-track{animation-duration:26s}
   .hero{padding:38px 0 46px;min-height:auto}
   .hero h1{font-size:31px}
   .hero p.sub{font-size:15.5px}
@@ -468,15 +474,23 @@ body.modal-open{overflow:hidden}
 <section class="logos">
   <div class="container">
     <div class="lab">We Only Install Globally Certified Tier-1 Components</div>
-    <div class="logo-track">
-      <span class="brand" style="color:#1a7a3c">WAAREE</span>
-      <span class="brand">adani</span>
-      <span class="brand" style="color:#c0392b">VIKRAM SOLAR</span>
-      <span class="brand">RenewSys</span>
-      <span class="brand" style="color:#2c7a2c">GROWATT</span>
-      <span class="brand" style="color:#e67e22">SUNGROW</span>
-      <span class="brand" style="color:#e6a817">solis</span>
-      <span class="brand" style="color:#c0392b">POLYCAB</span>
+    <div class="logo-marquee">
+      <div class="logo-track">
+        <img src="assets/waaree.png" alt="Waaree" />
+        <img src="assets/adani.png" alt="Adani" />
+        <img src="assets/vikramsolar.png" alt="Vikram Solar" />
+        <img src="assets/renew.png" alt="ReNew" />
+        <img src="assets/growatt.png" alt="Growatt" />
+        <img src="assets/sungrow.png" alt="Sungrow" />
+        <img src="assets/polycab.png" alt="Polycab" />
+        <img src="assets/waaree.png" alt="Waaree" aria-hidden="true" />
+        <img src="assets/adani.png" alt="Adani" aria-hidden="true" />
+        <img src="assets/vikramsolar.png" alt="Vikram Solar" aria-hidden="true" />
+        <img src="assets/renew.png" alt="ReNew" aria-hidden="true" />
+        <img src="assets/growatt.png" alt="Growatt" aria-hidden="true" />
+        <img src="assets/sungrow.png" alt="Sungrow" aria-hidden="true" />
+        <img src="assets/polycab.png" alt="Polycab" aria-hidden="true" />
+      </div>
     </div>
   </div>
 </section>
