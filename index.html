@@ -62,6 +62,7 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .navlinks a:hover{color:var(--blue)}
 .nav-cta{justify-self:end;display:flex;align-items:center;gap:14px}
 .nav-cta-btn .cta-short{display:none}
+#quote{scroll-margin-top:84px}
 .burger{display:none;background:none;border:none;cursor:pointer;width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
 .burger span{display:block;width:20px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
 
@@ -359,21 +360,22 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   .foot-top{gap:8px}
 }
 @media(max-width:480px){
-  /* 1) HEADER: logo (far left) + Get Quote button + hamburger (far right), one row */
+  /* 1) HEADER: logo (far left) + Get Quote button (far right), no hamburger */
   .nav{display:flex;justify-content:space-between;gap:10px}
   .logo{flex:0 1 auto;min-width:0;font-size:15px}
+  .burger{display:none}
   .nav-cta{flex:none;gap:8px}
   .nav-cta .btn{display:inline-flex}
   .nav-cta-btn .cta-full{display:none}
   .nav-cta-btn .cta-short{display:inline}
-  .nav-cta-btn{padding:11px 14px;font-size:13px;gap:6px}
+  .nav-cta-btn{padding:11px 16px;font-size:13px;gap:6px}
   .nav-cta-btn svg{width:15px;height:15px}
   /* 2) HERO: let the house photo show through — much lighter overlay */
   .hero-bg::after{background:linear-gradient(180deg,rgba(244,248,253,.66) 0%,rgba(244,248,253,.42) 45%,rgba(244,248,253,.12) 100%)}
-  /* 3) FINAL CTA: comfortable buttons, breathing room */
-  .final-cta .inner{padding:40px 0}
-  .final-cta .ctas{gap:10px}
-  .final-cta .ctas .btn{padding:12px 18px;font-size:14px}
+  /* 3) FINAL CTA: normal-height buttons, clear spacing + breathing room */
+  .final-cta .inner{padding:38px 0}
+  .final-cta .ctas{gap:12px;margin-top:22px}
+  .final-cta .ctas .btn{padding:11px 18px;font-size:14px}
 }
 </style>
 </head>
@@ -395,7 +397,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-cta">
-      <a href="#lead" class="btn btn-blue nav-cta-btn"><span class="cta-full">Get Free Solar Consultation </span><span class="cta-short">Get Quote</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#quote" class="btn btn-blue nav-cta-btn"><span class="cta-full">Get Free Solar Consultation </span><span class="cta-short">Get Quote</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <button class="burger" id="burger" aria-label="menu"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -411,7 +413,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
       <p class="sub">High-performance rooftop solar systems designed for homeowners who want lower electricity costs — without technical confusion, paperwork stress, or unreliable vendors.</p>
       <div class="subsidy-pill"><span class="ic">☀️</span> Get up to <b>&nbsp;₹78,000 Government Subsidy&nbsp;</b> — 100% Paperwork Handled by Us</div>
       <div class="hero-ctas">
-        <a href="#lead" class="btn btn-blue">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="#quote" class="btn btn-blue">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         <a href="#calc" class="btn btn-white">Calculate Your Savings</a>
       </div>
       <div class="trust-row">
@@ -422,7 +424,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
       </div>
     </div>
 
-    <div class="lead-form">
+    <div class="lead-form" id="quote">
       <h3>Get Free Solar Consultation</h3>
       <p class="lf-sub">Our solar experts will analyze your electricity bill and help you find the best solar solution for your home.</p>
       <form id="leadForm">
@@ -536,7 +538,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
           <div class="out-cell"><div class="k">Payback Period</div><div class="v">4 – 5 Yrs</div></div>
           <div class="out-cell"><div class="k">25-Year Savings</div><div class="v">₹<span id="lakhs">24 – 28</span> L</div></div>
         </div>
-        <a href="#lead" class="btn btn-blue btn-block">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="#quote" class="btn btn-blue btn-block">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         <p class="calc-note">*EMI amount is approximate and may vary based on loan provider.</p>
       </div>
 
@@ -642,7 +644,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
         <div class="stat"><div class="num">15+</div><span class="lab">Areas Served</span></div>
         <div class="stat"><div class="num">24h</div><span class="lab">Response Time</span></div>
       </div>
-      <a href="#lead" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#quote" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <div class="map-reassure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg> Free site visit &amp; quote — no obligation</div>
     </div>
   </div>
@@ -663,7 +665,7 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
     <h2>Every Month You Delay Is More Money Lost on Electricity Bills</h2>
     <p>Start reducing your electricity costs with a premium rooftop solar system designed for long-term savings and peace of mind.</p>
     <div class="ctas">
-      <a href="#lead" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#quote" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <a href="#calc" class="btn btn-outline">Calculate Your Savings</a>
     </div>
   </div>
