@@ -225,10 +225,14 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 
 /* ============ MAP ============ */
 #map{position:relative;overflow:hidden}
-#map .container{position:relative;z-index:1;min-height:420px;display:flex;align-items:center}
-.map-text{max-width:460px}
-.map-text h2{font-size:30px;color:var(--navy);margin-bottom:14px}
-.map-text p{color:var(--muted);font-size:15px;margin-bottom:22px;line-height:1.6}
+#map .container{position:relative;z-index:1;min-height:460px;display:flex;align-items:center}
+.map-text{max-width:440px;padding-right:20px}
+.map-eyebrow{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:12px}
+.map-text h2{font-size:31px;line-height:1.18;color:var(--navy);margin-bottom:16px}
+.map-text p{color:var(--muted);font-size:15px;margin-bottom:20px;line-height:1.65}
+.map-stats{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px}
+.map-stats .chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm);border-radius:50px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)}
+.map-stats .chip b{color:var(--blue);font-family:var(--display);font-weight:800}
 .map-bg{position:absolute;top:0;right:0;bottom:0;width:62%;z-index:0;background-image:url('assets/map.png');background-size:cover;background-position:center right;-webkit-mask-image:linear-gradient(to left,#000 58%,transparent 100%);mask-image:linear-gradient(to left,#000 58%,transparent 100%)}
 
 /* ============ FAQ ============ */
@@ -587,8 +591,14 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
   <div class="map-bg"></div>
   <div class="container">
     <div class="map-text">
+      <div class="map-eyebrow">Our Service Areas</div>
       <h2>Serving Homeowners Across Chennai</h2>
       <p>We are proudly serving homeowners across major parts of Chennai with premium solar solutions.</p>
+      <div class="map-stats">
+        <span class="chip"><b>500+</b> Homes Powered</span>
+        <span class="chip"><b>15+</b> Areas Served</span>
+        <span class="chip">Chennai-wide Support</span>
+      </div>
       <a href="#lead" class="btn btn-amber">Get Free Solar Consultation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     </div>
   </div>
