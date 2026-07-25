@@ -5,3 +5,4 @@ public/
 .env.local
 .env.*.local
 node_modules/
+work/

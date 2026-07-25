@@ -64,3 +64,13 @@ test('keeps the testimonial scaffold hidden until genuine media is approved', ()
   assert.match(html, /Keep this empty until genuine assets are approved/);
   assert.doesNotMatch(html, /Ramesh K\.|Lakshmi R\.|Suresh B\.|Karthik M\./);
 });
+
+test('implements the approved final hero and financing composition', () => {
+  assert.match(html, /grid-template-columns:minmax\(190px,26%\) minmax\(500px,46%\) minmax\(380px,28%\)/);
+  assert.equal((html.match(/class="trust-card"/g) || []).length, 4);
+  assert.match(html, /class="trust-card"><svg class="ic" aria-hidden="true"/);
+  assert.doesNotMatch(html, /bank-grid|bank-badge|HDFC|Bajaj Finserv|Ecofy|Credit Fair/);
+  assert.match(html, /width:calc\(100% - 12px\);max-width:430px;margin:0 0 28px auto/);
+  assert.match(html, /map-bg\.map-loaded\{background-image:url\('assets\/map\.webp'\)\}/);
+  assert.match(html, /mapObserver\.observe\(map\)/);
+});
