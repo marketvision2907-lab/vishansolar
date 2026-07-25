@@ -13,10 +13,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <title>Vishan Solar — Eliminate Your Electricity Bill for 25+ Years</title>
 <meta name="description" content="Premium rooftop solar for Chennai homeowners. Save up to 95% on EB bills, get up to ₹78,000 government subsidy, 25-year warranty. 100% paperwork handled." />
 <link rel="canonical" href="https://www.vishansolar.com/" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="preload" as="image" href="assets/hero-768.webp" imagesrcset="assets/hero-768.webp 768w, assets/hero-1600.webp 1600w" imagesizes="100vw" fetchpriority="high" />
+<link rel="preload" as="font" href="assets/poppins-400.woff2" type="font/woff2" crossorigin />
+<link rel="preload" as="font" href="assets/poppins-700.woff2" type="font/woff2" crossorigin />
+<link rel="preload" as="font" href="assets/poppins-800.woff2" type="font/woff2" crossorigin />
 <style>
+@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url('assets/poppins-400.woff2') format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url('assets/poppins-500.woff2') format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url('assets/poppins-600.woff2') format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url('assets/poppins-700.woff2') format('woff2')}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url('assets/poppins-800.woff2') format('woff2')}
 /* ============ TOKENS ============ */
 :root{
   --navy:#13306E; --navy-2:#1A3A8F; --navy-deep:#102A5E;
@@ -42,10 +48,13 @@ img{max-width:100%;display:block}
 ul{list-style:none}
 .container{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 .section{padding:72px 0}
+.section,.map-section,.final-cta,footer{content-visibility:auto;contain-intrinsic-size:auto 760px}
 .center{text-align:center}
 
 /* ============ BUTTONS ============ */
 .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:15px;padding:14px 24px;border-radius:11px;cursor:pointer;border:none;transition:.2s ease;white-space:nowrap}
+.btn:focus-visible,.modal-close:focus-visible{outline:3px solid rgba(30,85,214,.35);outline-offset:3px}
+.btn:disabled{cursor:wait;transform:none;opacity:.82}
 .btn svg{width:18px;height:18px}
 .btn-blue{background:var(--blue);color:#fff;box-shadow:0 8px 20px rgba(30,85,214,.28)}
 .btn-blue:hover{background:var(--blue-dark);transform:translateY(-2px)}
@@ -76,7 +85,8 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 
 /* ============ HERO ============ */
 .hero{position:relative;color:var(--ink);padding:54px 0 58px;overflow:hidden;min-height:540px}
-.hero-bg{position:absolute;inset:0;z-index:-2;background-image:url('assets/hero-bg.jpg');background-size:cover;background-position:left center}
+.hero-bg{position:absolute;inset:0;z-index:-2;display:block}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:left center}
 .hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(244,248,253,.18) 0%,rgba(244,248,253,.82) 30%,rgba(244,248,253,.92) 52%,rgba(244,248,253,.70) 74%,rgba(244,248,253,.12) 100%)}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:54px;align-items:center;position:relative;max-width:1320px}
 .hero-content{text-align:center;padding-left:0;display:flex;flex-direction:column;align-items:center;justify-self:center;max-width:650px}
@@ -109,7 +119,9 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .lf-note{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:14px;font-size:11.5px;color:var(--muted)}
 .lf-note span{display:inline-flex;align-items:center;gap:5px}
 .lf-note svg{width:13px;height:13px;color:var(--green)}
-.form-status{font-size:13px;margin-top:10px;text-align:center;font-weight:600}
+.form-status{font-size:13px;min-height:20px;margin-top:10px;text-align:center;font-weight:600;color:var(--muted)}
+.submit-spinner{width:16px;height:16px;border:2px solid rgba(39,33,11,.3);border-top-color:#27210b;border-radius:50%;animation:submitSpin .7s linear infinite}
+@keyframes submitSpin{to{transform:rotate(360deg)}}
 .hp-field{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
 
 /* ============ LOGO STRIP ============ */
@@ -257,7 +269,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .map-stats .stat .lab{display:block;font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.25}
 .map-reassure{display:flex;align-items:center;gap:7px;margin-top:14px;font-size:12.5px;color:var(--muted)}
 .map-reassure svg{width:15px;height:15px;color:var(--green);flex:none}
-.map-bg{position:absolute;top:0;right:0;bottom:0;width:66%;z-index:0;background-image:url('assets/map.png');background-size:cover;background-position:center right;-webkit-mask-image:linear-gradient(to left,#000 90%,transparent 100%);mask-image:linear-gradient(to left,#000 90%,transparent 100%)}
+.map-bg{position:absolute;top:0;right:0;bottom:0;width:66%;z-index:0;background-image:url('assets/map.webp');background-size:cover;background-position:center right;-webkit-mask-image:linear-gradient(to left,#000 90%,transparent 100%);mask-image:linear-gradient(to left,#000 90%,transparent 100%)}
 
 /* ============ FAQ ============ */
 .faq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
@@ -271,7 +283,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 
 /* ============ FINAL CTA + FOOTER ============ */
 .final-cta{position:relative;color:#fff;overflow:hidden}
-.final-cta .cta-bg{position:absolute;inset:0;background-color:var(--navy-deep);background-image:linear-gradient(100deg,var(--navy-deep) 0%,var(--navy-deep) 44%,rgba(16,42,94,.85) 56%,rgba(16,42,94,.45) 68%,rgba(16,42,94,0) 84%),url('assets/cta-bg.jpg');background-repeat:no-repeat,no-repeat;background-size:100% 100%,auto 100%;background-position:center,right center}
+.final-cta .cta-bg{position:absolute;inset:0;background-color:var(--navy-deep);background-image:linear-gradient(100deg,var(--navy-deep) 0%,var(--navy-deep) 44%,rgba(16,42,94,.85) 56%,rgba(16,42,94,.45) 68%,rgba(16,42,94,0) 84%),url('assets/cta-bg.webp');background-repeat:no-repeat,no-repeat;background-size:100% 100%,auto 100%;background-position:center,right center}
 .final-cta .inner{position:relative;z-index:2;padding:56px 0}
 .final-cta h2{font-size:32px;font-weight:800;margin-bottom:10px;max-width:640px;line-height:1.12}
 .final-cta p{color:#cdd9ef;font-size:15.5px;margin-bottom:24px;max-width:560px}
@@ -413,6 +425,12 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 .result-card p{font-size:14.5px;color:var(--muted);line-height:1.65;white-space:pre-line;margin-bottom:24px}
 .result-actions{display:flex;flex-direction:column;gap:10px}
 .result-actions .btn{justify-content:center}
+.result-countdown{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+.btn-whatsapp{background:#25D366;color:#fff;box-shadow:0 8px 20px rgba(37,211,102,.25)}
+.btn-whatsapp:hover{background:#1fb959;transform:translateY(-2px)}
+.btn-whatsapp:active{background:#179b49;transform:translateY(0)}
+.btn-whatsapp:focus-visible{outline-color:rgba(37,211,102,.4)}
+.btn-whatsapp svg{fill:currentColor}
 .btn-secondary{background:#fff;color:var(--navy);border:1.4px solid var(--line)}
 .btn-secondary:hover{background:var(--soft)}
 body.modal-open{overflow:hidden}
@@ -428,7 +446,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header>
   <div class="container nav">
     <a href="#" class="logo">
-      <img class="mark" src="assets/logo.png" alt="Vishan Solar logo"/>
+      <img class="mark" src="assets/logo.webp" alt="Vishan Solar logo" width="40" height="40" fetchpriority="high"/>
       <span class="lname">VISHAN <b>SOLAR</b><small>The Smarter Way to Power Your Home</small></span>
     </a>
     <nav class="navlinks">
@@ -448,7 +466,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="lead">
-  <div class="hero-bg"></div>
+  <picture class="hero-bg" aria-hidden="true">
+    <source media="(max-width:767px)" srcset="assets/hero-768.webp" />
+    <img src="assets/hero-1600.webp" alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
+  </picture>
   <div class="container hero-grid">
     <div class="hero-content">
       <div class="hero-tag">⚡ Premium Rooftop Solar Solutions for Homeowners</div>
@@ -501,20 +522,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="lab">We Only Install Globally Certified Tier-1 Components</div>
     <div class="logo-marquee">
       <div class="logo-track">
-        <img src="assets/waaree.png" alt="Waaree" class="waaree" />
-        <img src="assets/adani.png" alt="Adani" />
-        <img src="assets/vikramsolar.png" alt="Vikram Solar" />
-        <img src="assets/renew.png" alt="ReNew" />
-        <img src="assets/growatt.png" alt="Growatt" />
-        <img src="assets/sungrow.png" alt="Sungrow" />
-        <img src="assets/polycab.png" alt="Polycab" />
-        <img src="assets/waaree.png" alt="Waaree" aria-hidden="true" class="waaree" />
-        <img src="assets/adani.png" alt="Adani" aria-hidden="true" />
-        <img src="assets/vikramsolar.png" alt="Vikram Solar" aria-hidden="true" />
-        <img src="assets/renew.png" alt="ReNew" aria-hidden="true" />
-        <img src="assets/growatt.png" alt="Growatt" aria-hidden="true" />
-        <img src="assets/sungrow.png" alt="Sungrow" aria-hidden="true" />
-        <img src="assets/polycab.png" alt="Polycab" aria-hidden="true" />
+        <img src="assets/waaree.webp" alt="Waaree" class="waaree" width="420" height="121" loading="lazy" decoding="async" />
+        <img src="assets/adani.png" alt="Adani" width="230" height="43" loading="lazy" decoding="async" />
+        <img src="assets/vikramsolar.png" alt="Vikram Solar" width="1565" height="664" loading="lazy" decoding="async" />
+        <img src="assets/renew.png" alt="ReNew" width="820" height="204" loading="lazy" decoding="async" />
+        <img src="assets/growatt.png" alt="Growatt" width="182" height="31" loading="lazy" decoding="async" />
+        <img src="assets/sungrow.png" alt="Sungrow" width="820" height="180" loading="lazy" decoding="async" />
+        <img src="assets/polycab.png" alt="Polycab" width="562" height="166" loading="lazy" decoding="async" />
+        <img src="assets/waaree.webp" alt="" aria-hidden="true" class="waaree" width="420" height="121" loading="lazy" decoding="async" />
+        <img src="assets/adani.png" alt="" aria-hidden="true" width="230" height="43" loading="lazy" decoding="async" />
+        <img src="assets/vikramsolar.png" alt="" aria-hidden="true" width="1565" height="664" loading="lazy" decoding="async" />
+        <img src="assets/renew.png" alt="" aria-hidden="true" width="820" height="204" loading="lazy" decoding="async" />
+        <img src="assets/growatt.png" alt="" aria-hidden="true" width="182" height="31" loading="lazy" decoding="async" />
+        <img src="assets/sungrow.png" alt="" aria-hidden="true" width="820" height="180" loading="lazy" decoding="async" />
+        <img src="assets/polycab.png" alt="" aria-hidden="true" width="562" height="166" loading="lazy" decoding="async" />
       </div>
     </div>
   </div>
@@ -526,7 +547,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="compare">
       <div class="vs-badge">VS</div>
       <div class="comp-card bad">
-        <div class="comp-photo"><img src="assets/comparison-1.jpg" alt="Homeowner stressed over high electricity bills"/></div>
+        <div class="comp-photo"><img src="assets/comparison-1.webp" alt="Homeowner stressed over high electricity bills" width="760" height="506" loading="lazy" decoding="async"/></div>
         <div class="comp-content">
           <div class="comp-head">Life With High Electricity Bills</div>
           <ul class="comp-bullets">
@@ -549,7 +570,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></span><div><b>20+ years of guaranteed savings</b><span>Enjoy worry-free savings for decades</span></div></li>
           </ul>
         </div>
-        <div class="comp-photo"><img src="assets/comparison-2.jpg" alt="Happy family outside their solar-powered home"/></div>
+        <div class="comp-photo"><img src="assets/comparison-2.webp" alt="Happy family outside their solar-powered home" width="760" height="506" loading="lazy" decoding="async"/></div>
       </div>
     </div>
   </div>
@@ -727,7 +748,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="foot-top">
       <div>
         <div class="foot-logo">
-          <img class="mark" src="assets/logo.png" alt="Vishan Solar logo"/>
+          <img class="mark" src="assets/logo.webp" alt="Vishan Solar logo" width="40" height="40" loading="lazy" decoding="async"/>
           <span>VISHAN SOLAR<small>The Smarter Way to Power Your Home</small></span>
         </div>
         <p style="font-size:13px;line-height:1.5;color:#9aa9c7">Premium rooftop solar for Chennai homeowners — lower bills, full paperwork support, decades of clean savings.</p>
@@ -793,8 +814,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="result-icon" id="resultIcon" aria-hidden="true"></div>
     <h3 id="resultTitle"></h3>
     <p id="resultMessage"></p>
+    <div class="result-countdown" id="resultCountdown" role="status" aria-live="polite" hidden></div>
     <div class="result-actions">
-      <a class="btn btn-amber" id="resultPrimary" href="#" target="_blank" rel="noopener noreferrer"></a>
+      <a class="btn btn-amber" id="resultPrimary" href="#" rel="noopener noreferrer"></a>
       <button type="button" class="btn btn-secondary" id="resultSecondary"></button>
     </div>
   </div>
@@ -946,28 +968,60 @@ var resultCard=resultModal.querySelector('.result-card');
 var resultPrimary=document.getElementById('resultPrimary');
 var resultSecondary=document.getElementById('resultSecondary');
 var resultClose=document.getElementById('resultModalClose');
+var resultCountdown=document.getElementById('resultCountdown');
 var lastResultFocus=null;
 var activeFailedForm=null;
+var resultTimer=null;
+var resultSeconds=8;
+var resultTimerPaused=false;
+var whatsappTracked=false;
 
 function pushAnalytics(payload){
   window.dataLayer=window.dataLayer||[];
   window.dataLayer.push(payload);
 }
+function cancelResultTimer(){
+  if(resultTimer){clearInterval(resultTimer);resultTimer=null;}
+}
+function updateResultCountdown(){
+  resultCountdown.textContent='Closing automatically in '+resultSeconds+' second'+(resultSeconds===1?'':'s');
+}
+function startResultTimer(){
+  cancelResultTimer();
+  resultSeconds=8;
+  resultTimerPaused=false;
+  resultCountdown.hidden=false;
+  updateResultCountdown();
+  resultTimer=setInterval(function(){
+    if(resultTimerPaused||document.hidden)return;
+    resultSeconds-=1;
+    updateResultCountdown();
+    if(resultSeconds<=0)closeResultModal();
+  },1000);
+}
 function closeResultModal(){
+  cancelResultTimer();
   resultModal.classList.remove('open');
   resultModal.setAttribute('aria-hidden','true');
   document.body.classList.remove('modal-open');
+  resultCountdown.hidden=true;
   if(lastResultFocus&&document.contains(lastResultFocus))lastResultFocus.focus();
 }
 function openResultModal(success,form){
+  cancelResultTimer();
   lastResultFocus=document.activeElement;
   activeFailedForm=success?null:form;
+  whatsappTracked=false;
   document.getElementById('resultIcon').textContent=success?'✓':'!';
   document.getElementById('resultTitle').textContent=success?'Consultation Request Submitted':'Submission Failed';
   document.getElementById('resultMessage').textContent=success
     ?'Thank you for contacting Vishan Solar.\n\nYour free solar consultation request has been received successfully.\n\nOur solar expert will review your details and contact you within 24 hours.'
     :"We couldn't submit your consultation request at the moment.\n\nPlease try again in a few minutes or contact us directly through WhatsApp.";
-  resultPrimary.textContent=success?'Chat With Us on WhatsApp':'Try Again';
+  resultPrimary.innerHTML=success
+    ?'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.6 4.7-1.2A10 10 0 1012 2zm5.2 14.1c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.7-4.4-3.9-.1-.2-1-1.4-1-2.6s.6-1.8.9-2.1c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.7 1.7c.1.1.1.3 0 .5l-.3.4-.3.3c-.1.1-.3.3-.1.5.1.3.6 1 1.4 1.6 1 .8 1.7 1 2 1.2.2.1.4.1.5-.1l.6-.7c.2-.2.3-.2.6-.1l1.6.8c.2.1.4.2.4.3.1.1.1.5-.1 1z"/></svg><span>Chat on WhatsApp</span>'
+    :'Try Again';
+  resultPrimary.classList.toggle('btn-whatsapp',success);
+  resultPrimary.classList.toggle('btn-amber',!success);
   resultSecondary.textContent=success?'Close':'WhatsApp';
   resultPrimary.href=success?WHATSAPP_URL:'#';
   resultPrimary.target=success?'_blank':'';
@@ -975,6 +1029,8 @@ function openResultModal(success,form){
   resultModal.setAttribute('aria-hidden','false');
   document.body.classList.add('modal-open');
   setTimeout(function(){resultCard.focus();},50);
+  if(success)startResultTimer();
+  else resultCountdown.hidden=true;
 }
 resultClose.addEventListener('click',closeResultModal);
 resultModal.addEventListener('click',function(e){if(e.target===resultModal)closeResultModal();});
@@ -984,7 +1040,11 @@ resultPrimary.addEventListener('click',function(e){
     closeResultModal();
     activeFailedForm.querySelector('[name="fullName"]').focus();
   }else{
-    pushAnalytics({event:'whatsapp_click',click_location:'lead_success_modal'});
+    cancelResultTimer();
+    if(!whatsappTracked){
+      whatsappTracked=true;
+      pushAnalytics({event:'whatsapp_click',click_location:'lead_success_modal'});
+    }
   }
 });
 resultSecondary.addEventListener('click',function(){
@@ -994,6 +1054,16 @@ resultSecondary.addEventListener('click',function(){
     closeResultModal();
   }
 });
+resultCard.addEventListener('pointerenter',function(){resultTimerPaused=true;});
+resultCard.addEventListener('pointerleave',function(){resultTimerPaused=false;});
+resultCard.addEventListener('focusin',function(){resultTimerPaused=true;});
+resultCard.addEventListener('focusout',function(){
+  setTimeout(function(){resultTimerPaused=resultCard.contains(document.activeElement);},0);
+});
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden&&resultModal.classList.contains('open'))updateResultCountdown();
+});
+window.addEventListener('pagehide',cancelResultTimer);
 document.addEventListener('keydown',function(e){
   if(!resultModal.classList.contains('open'))return;
   if(e.key==='Escape'){e.preventDefault();closeResultModal();return;}
@@ -1054,10 +1124,12 @@ document.querySelectorAll('.crm-lead-form').forEach(function(form){
     if(!values)return;
     var button=form.querySelector('button[type="submit"]');
     var status=form.querySelector('.form-status');
+    var originalButton=button.innerHTML;
     form.dataset.submitting='true';
+    form.setAttribute('aria-busy','true');
     button.disabled=true;
-    button.setAttribute('aria-busy','true');
-    status.textContent='Submitting…';
+    button.innerHTML='<span class="submit-spinner" aria-hidden="true"></span><span>Submitting your request...</span>';
+    status.textContent='Please wait while we securely submit your details.';
     try{
       var controller=new AbortController();
       var timeout=setTimeout(function(){controller.abort();},15000);
@@ -1090,8 +1162,9 @@ document.querySelectorAll('.crm-lead-form').forEach(function(form){
       openResultModal(false,form);
     }finally{
       form.dataset.submitting='false';
+      form.setAttribute('aria-busy','false');
       button.disabled=false;
-      button.removeAttribute('aria-busy');
+      button.innerHTML=originalButton;
     }
   });
 });

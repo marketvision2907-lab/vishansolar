@@ -5,6 +5,11 @@ const MAX_BODY_BYTES = 16 * 1024;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
 const IDEMPOTENCY_TTL_MS = 30 * 60 * 1000;
+const ENDPOINT_TIMEOUT_MS = 13 * 1000;
+const TOKEN_TIMEOUT_MS = 5 * 1000;
+const CRM_TIMEOUT_MS = 7 * 1000;
+const TOKEN_EXPIRY_SAFETY_MS = 5 * 60 * 1000;
+const TOKEN_CACHE_KEY = 'zoho-access-token-v1';
 const ALLOWED_BILL_RANGES = new Set([
   'Below ₹2,000',
   '₹2,000 – ₹5,000',
@@ -32,6 +37,8 @@ const FIELD = Object.freeze({
 
 const rateBuckets = globalThis.__vishanRateBuckets || new Map();
 const idempotencyCache = globalThis.__vishanIdempotencyCache || new Map();
+let localTokenCache = globalThis.__vishanZohoToken || null;
+let tokenRefreshPromise = globalThis.__vishanZohoTokenRefresh || null;
 globalThis.__vishanRateBuckets = rateBuckets;
 globalThis.__vishanIdempotencyCache = idempotencyCache;
 
@@ -138,9 +145,17 @@ function requiredEnv() {
   return values;
 }
 
-async function fetchWithTimeout(url, options, timeoutMs) {
+function nowMs() {
+  return performance.now();
+}
+
+function remainingTimeout(deadline, requestedMs) {
+  return Math.max(1, Math.min(requestedMs, deadline - Date.now()));
+}
+
+async function fetchWithTimeout(url, options, timeoutMs, deadline = Date.now() + timeoutMs) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort(), remainingTimeout(deadline, timeoutMs));
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } finally {
@@ -148,7 +163,37 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   }
 }
 
-async function getAccessToken(env) {
+function runtimeCache() {
+  try {
+    return require('@vercel/functions').getCache({ namespace: 'vishan-solar-crm' });
+  } catch {
+    return null;
+  }
+}
+
+function validToken(entry) {
+  return Boolean(entry?.token && Number(entry.expiresAt) - Date.now() > TOKEN_EXPIRY_SAFETY_MS);
+}
+
+async function getAccessToken(env, deadline) {
+  if (validToken(localTokenCache)) return { token: localTokenCache.token, source: 'memory' };
+
+  const cache = runtimeCache();
+  if (cache) {
+    try {
+      const shared = await cache.get(TOKEN_CACHE_KEY);
+      if (validToken(shared)) {
+        localTokenCache = shared;
+        globalThis.__vishanZohoToken = shared;
+        return { token: shared.token, source: 'runtime-cache' };
+      }
+    } catch {
+      console.warn('zoho_token_cache_unavailable');
+    }
+  }
+
+  if (tokenRefreshPromise) return tokenRefreshPromise;
+  tokenRefreshPromise = (async () => {
   const params = new URLSearchParams({
     refresh_token: env.ZOHO_REFRESH_TOKEN,
     client_id: env.ZOHO_CLIENT_ID,
@@ -162,14 +207,38 @@ async function getAccessToken(env) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
     },
-    8000,
+    TOKEN_TIMEOUT_MS,
+    deadline,
   );
   const data = await response.json().catch(() => ({}));
   if (!response.ok || typeof data.access_token !== 'string') throw new Error('ZOHO_AUTH_FAILED');
-  return data.access_token;
+    const expiresInSeconds = Math.max(600, Number(data.expires_in) || 3600);
+    const entry = { token: data.access_token, expiresAt: Date.now() + expiresInSeconds * 1000 };
+    localTokenCache = entry;
+    globalThis.__vishanZohoToken = entry;
+    if (cache) {
+      try {
+        await cache.set(TOKEN_CACHE_KEY, entry, {
+          ttl: Math.max(60, expiresInSeconds - TOKEN_EXPIRY_SAFETY_MS / 1000),
+          tags: ['zoho-auth'],
+          name: 'Zoho CRM access token',
+        });
+      } catch {
+        console.warn('zoho_token_cache_write_failed');
+      }
+    }
+    return { token: entry.token, source: 'refresh' };
+  })();
+  globalThis.__vishanZohoTokenRefresh = tokenRefreshPromise;
+  try {
+    return await tokenRefreshPromise;
+  } finally {
+    tokenRefreshPromise = null;
+    globalThis.__vishanZohoTokenRefresh = null;
+  }
 }
 
-async function zohoRequest(env, token, path, options = {}) {
+async function zohoRequest(env, token, path, options = {}, deadline) {
   return fetchWithTimeout(
     `${env.ZOHO_API_DOMAIN}/crm/v8${path}`,
     {
@@ -180,7 +249,8 @@ async function zohoRequest(env, token, path, options = {}) {
         ...(options.headers || {}),
       },
     },
-    10000,
+    CRM_TIMEOUT_MS,
+    deadline,
   );
 }
 
@@ -207,25 +277,25 @@ function crmRecord(lead) {
   return record;
 }
 
-async function findExistingLead(env, token, phone) {
+async function findExistingLead(env, token, phone, deadline) {
   const criteria = encodeURIComponent(`(${FIELD.phone}:equals:${phone})`);
   const response = await zohoRequest(env, token, `/Leads/search?criteria=${criteria}&fields=id&per_page=1`, {
     method: 'GET',
-  });
+  }, deadline);
   if (response.status === 204) return false;
   if (!response.ok) throw new Error(response.status === 401 ? 'ZOHO_AUTH_EXPIRED' : 'ZOHO_LOOKUP_FAILED');
   const data = await response.json().catch(() => ({}));
   return Boolean(data.data?.[0]?.id);
 }
 
-async function createLead(env, token, lead) {
+async function createLead(env, token, lead, deadline) {
   const response = await zohoRequest(env, token, '/Leads', {
     method: 'POST',
     body: JSON.stringify({
       data: [crmRecord(lead)],
       trigger: ['workflow'],
     }),
-  });
+  }, deadline);
   const data = await response.json().catch(() => ({}));
   const result = data.data?.[0];
   if (response.ok && result?.status === 'success' && result?.details?.id) return true;
@@ -233,15 +303,22 @@ async function createLead(env, token, lead) {
   throw new Error(response.status === 401 ? 'ZOHO_AUTH_EXPIRED' : 'ZOHO_CREATE_FAILED');
 }
 
-async function submitLead(lead) {
+async function submitLead(lead, deadline) {
   const env = requiredEnv();
-  const token = await getAccessToken(env);
-  if (await findExistingLead(env, token, lead.phone)) return { duplicate: true };
-  await createLead(env, token, lead);
-  return { duplicate: false };
+  const tokenStart = nowMs();
+  const access = await getAccessToken(env, deadline);
+  const tokenMs = nowMs() - tokenStart;
+  const crmStart = nowMs();
+  if (await findExistingLead(env, access.token, lead.phone, deadline)) {
+    return { duplicate: true, tokenMs, crmMs: nowMs() - crmStart, tokenSource: access.source };
+  }
+  await createLead(env, access.token, lead, deadline);
+  return { duplicate: false, tokenMs, crmMs: nowMs() - crmStart, tokenSource: access.source };
 }
 
 module.exports = async function handler(req, res) {
+  const requestStart = nowMs();
+  const deadline = Date.now() + ENDPOINT_TIMEOUT_MS;
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return reply(res, 405, { success: false, error: 'METHOD_NOT_ALLOWED' });
@@ -263,7 +340,9 @@ module.exports = async function handler(req, res) {
     return reply(res, 400, { success: false, error: 'INVALID_JSON' });
   }
 
+  const validationStart = nowMs();
   const validated = validate(body);
+  const validationMs = nowMs() - validationStart;
   if (validated.error) {
     const status = validated.error === 'SPAM_REJECTED' ? 400 : 422;
     return reply(res, status, { success: false, error: validated.error });
@@ -283,12 +362,17 @@ module.exports = async function handler(req, res) {
   idempotencyCache.set(cacheKey, { createdAt: now, pending: true });
 
   try {
-    const outcome = await submitLead(validated.lead);
+    const outcome = await submitLead(validated.lead, deadline);
     const result = { status: 200, payload: { success: true } };
     idempotencyCache.set(cacheKey, { createdAt: now, result });
     console.info('lead_submission_success', {
       requestId: cacheKey.slice(0, 12),
       duplicate: outcome.duplicate,
+      validationMs: Math.round(validationMs),
+      tokenMs: Math.round(outcome.tokenMs),
+      crmMs: Math.round(outcome.crmMs),
+      totalMs: Math.round(nowMs() - requestStart),
+      tokenSource: outcome.tokenSource,
     });
     return reply(res, result.status, result.payload);
   } catch (error) {
@@ -301,7 +385,12 @@ module.exports = async function handler(req, res) {
           : error?.message?.startsWith('MISSING_')
             ? 'SERVER_CONFIGURATION_ERROR'
             : 'CRM_UNAVAILABLE';
-    console.error('lead_submission_failed', { requestId: cacheKey.slice(0, 12), code });
+    console.error('lead_submission_failed', {
+      requestId: cacheKey.slice(0, 12),
+      code,
+      validationMs: Math.round(validationMs),
+      totalMs: Math.round(nowMs() - requestStart),
+    });
     return reply(res, 503, { success: false, error: code });
   }
 };
