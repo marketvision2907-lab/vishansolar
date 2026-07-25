@@ -103,6 +103,9 @@ header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.94);backdro
 .field label .req{color:var(--red)}
 .field input,.field select{width:100%;padding:12px 14px;border:1.4px solid var(--line);border-radius:10px;font-family:var(--body);font-size:14.5px;color:var(--ink);background:#fff;transition:.15s}
 .field input:focus,.field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(30,85,214,.12)}
+.field input[aria-invalid="true"],.field select[aria-invalid="true"]{border-color:var(--red)}
+.field-error{display:block;min-height:16px;margin-top:4px;color:var(--red);font-size:12px;font-weight:600}
+.hp-field{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
 .lf-note{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:14px;font-size:11.5px;color:var(--muted)}
 .lf-note span{display:inline-flex;align-items:center;gap:5px}
 .lf-note svg{width:13px;height:13px;color:var(--green)}
@@ -408,6 +411,10 @@ footer{background:#0C1C40;color:#aebbd6;padding:48px 0 0}
 .result-icon{font-size:42px;line-height:1;margin-bottom:14px}
 .result-card h3{font-size:23px;color:var(--navy);margin-bottom:16px}
 .result-card p{font-size:14.5px;color:var(--muted);line-height:1.65;white-space:pre-line;margin-bottom:24px}
+.result-actions{display:flex;flex-direction:column;gap:10px}
+.result-actions .btn{justify-content:center}
+.btn-secondary{background:#fff;color:var(--navy);border:1.4px solid var(--line)}
+.btn-secondary:hover{background:var(--soft)}
 body.modal-open{overflow:hidden}
 </style>
 </head>
@@ -463,26 +470,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="lead-form" id="quote">
       <h3>Get Free Solar Consultation</h3>
       <p class="lf-sub">Our solar experts will analyze your electricity bill and help you find the best solar solution for your home.</p>
-      <form id="webform1358211000000553073" name="WebToLeads1358211000000553073" action="https://crm.zoho.in/crm/WebToLeadForm" method="POST" accept-charset="UTF-8">
-        <input type="text" style="display:none" name="xnQsjsdp" value="e25db6420969fd0b145fff55b15a8e17dd3c6f44a7c8fb1fcda8fd22e2a1cd33" />
-        <input type="hidden" name="zc_gad" id="zc_gad" value="" />
-        <input type="text" style="display:none" name="xmIwtLD" value="7619ca089f0a722dabd77cee953c6406ed30f1fbbcf9e624e18a731ae441d923661aa16f5ffccb712ede5b0b82889ba8" />
-        <input type="text" style="display:none" name="actionType" value="TGVhZHM=" />
-        <input type="text" style="display:none" name="returnURL" value="null" />
-        <input type="hidden" name="Lead Source" value="Advertisement" />
-        <input type="hidden" name="Lead Status" value="Not Contacted" />
-        <input type="text" style="display:none" name="aG9uZXlwb3Q" value="" tabindex="-1" autocomplete="off" />
-        <div class="field"><label>Full Name <span class="req">*</span></label><input type="text" id="Last_Name" name="Last Name" placeholder="Enter your full name" maxlength="80" required /></div>
-        <div class="field"><label>Phone Number <span class="req">*</span></label><input type="tel" id="Phone" name="Phone" placeholder="Enter your 10-digit mobile number" pattern="[6-9][0-9]{9}" inputmode="numeric" maxlength="10" required /></div>
+      <form id="leadForm" class="crm-lead-form" novalidate>
+        <div class="hp-field" aria-hidden="true"><label>Company Website<input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" /></label></div>
+        <div class="field"><label>Full Name <span class="req">*</span></label><input type="text" id="fullName" name="fullName" placeholder="Enter your full name" maxlength="80" autocomplete="name" required /><span class="field-error" data-error-for="fullName"></span></div>
+        <div class="field"><label>Phone Number <span class="req">*</span></label><input type="tel" id="phone" name="phone" placeholder="Enter your 10-digit mobile number" inputmode="numeric" maxlength="10" autocomplete="tel" required /><span class="field-error" data-error-for="phone"></span></div>
         <div class="field"><label>Monthly EB Bill Range <span class="req">*</span></label>
-          <select id="LEADCF1" name="LEADCF1" required>
-            <option value="-None-" disabled selected>Select your monthly bill range</option>
+          <select id="billRange" name="billRange" required>
+            <option value="" disabled selected>Select your monthly bill range</option>
             <option>Below ₹2,000</option><option>₹2,000 – ₹5,000</option><option>₹5,000 – ₹10,000</option><option>₹10,000 – ₹20,000</option><option>Above ₹20,000</option>
           </select>
+          <span class="field-error" data-error-for="billRange"></span>
         </div>
-        <div class="field"><label>Location (Optional)</label><input type="text" id="Address_-_City" name="Address - City" placeholder="Enter your location" maxlength="255" /></div>
+        <div class="field"><label>Location (Optional)</label><input type="text" id="location" name="location" placeholder="Enter your location" maxlength="255" autocomplete="address-level2" /><span class="field-error" data-error-for="location"></span></div>
         <button type="submit" class="btn btn-amber btn-block">Get Free Solar Consultation</button>
-        <div class="form-status" id="formStatus"></div>
+        <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
       </form>
       <div class="lf-note">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg> No spam</span>
@@ -762,26 +763,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button class="modal-close" id="ctaModalClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h3>Get Free Solar Consultation</h3>
     <p class="lf-sub">Our solar experts will analyze your electricity bill and help you find the best solar solution for your home.</p>
-    <form id="webform1358211000000553073Modal" name="WebToLeads1358211000000553073" action="https://crm.zoho.in/crm/WebToLeadForm" method="POST" accept-charset="UTF-8">
-      <input type="text" style="display:none" name="xnQsjsdp" value="e25db6420969fd0b145fff55b15a8e17dd3c6f44a7c8fb1fcda8fd22e2a1cd33" />
-      <input type="hidden" name="zc_gad" value="" />
-      <input type="text" style="display:none" name="xmIwtLD" value="7619ca089f0a722dabd77cee953c6406ed30f1fbbcf9e624e18a731ae441d923661aa16f5ffccb712ede5b0b82889ba8" />
-      <input type="text" style="display:none" name="actionType" value="TGVhZHM=" />
-      <input type="text" style="display:none" name="returnURL" value="null" />
-      <input type="hidden" name="Lead Source" value="Advertisement" />
-      <input type="hidden" name="Lead Status" value="Not Contacted" />
-      <input type="text" style="display:none" name="aG9uZXlwb3Q" value="" tabindex="-1" autocomplete="off" />
-      <div class="field"><label>Full Name <span class="req">*</span></label><input type="text" name="Last Name" placeholder="Enter your full name" maxlength="80" required /></div>
-      <div class="field"><label>Phone Number <span class="req">*</span></label><input type="tel" name="Phone" placeholder="Enter your 10-digit mobile number" pattern="[6-9][0-9]{9}" inputmode="numeric" maxlength="10" required /></div>
+    <form id="leadFormModal" class="crm-lead-form" novalidate>
+      <div class="hp-field" aria-hidden="true"><label>Company Website<input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" /></label></div>
+      <div class="field"><label>Full Name <span class="req">*</span></label><input type="text" name="fullName" placeholder="Enter your full name" maxlength="80" autocomplete="name" required /><span class="field-error" data-error-for="fullName"></span></div>
+      <div class="field"><label>Phone Number <span class="req">*</span></label><input type="tel" name="phone" placeholder="Enter your 10-digit mobile number" inputmode="numeric" maxlength="10" autocomplete="tel" required /><span class="field-error" data-error-for="phone"></span></div>
       <div class="field"><label>Monthly EB Bill Range <span class="req">*</span></label>
-        <select name="LEADCF1" required>
-          <option value="-None-" disabled selected>Select your monthly bill range</option>
+        <select name="billRange" required>
+          <option value="" disabled selected>Select your monthly bill range</option>
           <option>Below ₹2,000</option><option>₹2,000 – ₹5,000</option><option>₹5,000 – ₹10,000</option><option>₹10,000 – ₹20,000</option><option>Above ₹20,000</option>
         </select>
+        <span class="field-error" data-error-for="billRange"></span>
       </div>
-      <div class="field"><label>Location (Optional)</label><input type="text" name="Address - City" placeholder="Enter your location" maxlength="255" /></div>
+      <div class="field"><label>Location (Optional)</label><input type="text" name="location" placeholder="Enter your location" maxlength="255" autocomplete="address-level2" /><span class="field-error" data-error-for="location"></span></div>
       <button type="submit" class="btn btn-amber btn-block">Get Free Solar Consultation</button>
-      <div class="form-status" id="formStatusModal"></div>
+      <div class="form-status" id="formStatusModal" role="status" aria-live="polite"></div>
     </form>
     <div class="lf-note">
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg> No spam</span>
@@ -793,11 +788,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <div class="modal-overlay" id="resultModal" aria-hidden="true">
-  <div class="modal-card result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+  <div class="modal-card result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultMessage" tabindex="-1">
+    <button class="modal-close" id="resultModalClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="result-icon" id="resultIcon" aria-hidden="true"></div>
     <h3 id="resultTitle"></h3>
     <p id="resultMessage"></p>
-    <button type="button" class="btn btn-amber btn-block" id="resultButton"></button>
+    <div class="result-actions">
+      <a class="btn btn-amber" id="resultPrimary" href="#" target="_blank" rel="noopener noreferrer"></a>
+      <button type="button" class="btn btn-secondary" id="resultSecondary"></button>
+    </div>
   </div>
 </div>
 
@@ -916,46 +915,184 @@ var TESTIMONIALS=[
   build();
 })();
 
-function checkMandatory1358211000000553073(form){
-  var fullName=form.elements['Last Name'];
-  var phone=form.elements.Phone;
-  var billRange=form.elements.LEADCF1;
-  fullName.value=fullName.value.trim();
-  phone.value=phone.value.trim();
-  if(!fullName.value){
-    fullName.setCustomValidity('Full Name cannot be empty.');
-    fullName.reportValidity();
-    return false;
-  }
-  fullName.setCustomValidity('');
-  if(!/^[6-9][0-9]{9}$/.test(phone.value)){
-    phone.setCustomValidity('Enter a valid 10-digit Indian mobile number.');
-    phone.reportValidity();
-    return false;
-  }
-  phone.setCustomValidity('');
-  if(!billRange.value||billRange.value==='-None-'){
-    billRange.setCustomValidity('Monthly EB Bill Range must be selected.');
-    billRange.reportValidity();
-    return false;
-  }
-  billRange.setCustomValidity('');
-  var urlparams=new URLSearchParams(window.location.search);
-  if(urlparams.get('service')==='smarturl'&&!form.elements.service){
-    var smarturlfield=document.createElement('input');
-    smarturlfield.type='hidden';smarturlfield.value='smarturl';smarturlfield.name='service';
-    form.appendChild(smarturlfield);
-  }
-  form.querySelector('button[type="submit"]').disabled=true;
-  document.charset='UTF-8';
-  return true;
-}
-document.querySelectorAll('form[action="https://crm.zoho.in/crm/WebToLeadForm"]').forEach(function(form){
-  form.addEventListener('submit',function(e){
-    if(!checkMandatory1358211000000553073(form))e.preventDefault();
+/* ---- First-touch attribution: keep the first non-empty value only. ---- */
+var ATTRIBUTION_KEY='vishan_first_touch_v1';
+function captureFirstTouch(){
+  var existing={};
+  try{existing=JSON.parse(localStorage.getItem(ATTRIBUTION_KEY)||'{}')||{};}catch(e){}
+  var query=new URLSearchParams(window.location.search);
+  var incoming={
+    utm_source:query.get('utm_source')||'',
+    utm_medium:query.get('utm_medium')||'',
+    utm_campaign:query.get('utm_campaign')||'',
+    utm_content:query.get('utm_content')||'',
+    utm_term:query.get('utm_term')||'',
+    gclid:query.get('gclid')||'',
+    fbclid:query.get('fbclid')||'',
+    landing_page_url:window.location.href||'',
+    referrer:document.referrer||''
+  };
+  Object.keys(incoming).forEach(function(key){
+    if(!existing[key]&&incoming[key])existing[key]=incoming[key];
   });
-  ['Last Name','Phone','LEADCF1'].forEach(function(name){
-    form.elements[name].addEventListener('input',function(){this.setCustomValidity('');});
+  try{localStorage.setItem(ATTRIBUTION_KEY,JSON.stringify(existing));}catch(e){}
+  return existing;
+}
+var firstTouch=captureFirstTouch();
+
+var WHATSAPP_URL='https://wa.me/919677127788?text='+encodeURIComponent('Hi Vishan Solar, I just submitted a free solar consultation request through your website. I would like to discuss the next steps.');
+var resultModal=document.getElementById('resultModal');
+var resultCard=resultModal.querySelector('.result-card');
+var resultPrimary=document.getElementById('resultPrimary');
+var resultSecondary=document.getElementById('resultSecondary');
+var resultClose=document.getElementById('resultModalClose');
+var lastResultFocus=null;
+var activeFailedForm=null;
+
+function pushAnalytics(payload){
+  window.dataLayer=window.dataLayer||[];
+  window.dataLayer.push(payload);
+}
+function closeResultModal(){
+  resultModal.classList.remove('open');
+  resultModal.setAttribute('aria-hidden','true');
+  document.body.classList.remove('modal-open');
+  if(lastResultFocus&&document.contains(lastResultFocus))lastResultFocus.focus();
+}
+function openResultModal(success,form){
+  lastResultFocus=document.activeElement;
+  activeFailedForm=success?null:form;
+  document.getElementById('resultIcon').textContent=success?'✓':'!';
+  document.getElementById('resultTitle').textContent=success?'Consultation Request Submitted':'Submission Failed';
+  document.getElementById('resultMessage').textContent=success
+    ?'Thank you for contacting Vishan Solar.\n\nYour free solar consultation request has been received successfully.\n\nOur solar expert will review your details and contact you within 24 hours.'
+    :"We couldn't submit your consultation request at the moment.\n\nPlease try again in a few minutes or contact us directly through WhatsApp.";
+  resultPrimary.textContent=success?'Chat With Us on WhatsApp':'Try Again';
+  resultSecondary.textContent=success?'Close':'WhatsApp';
+  resultPrimary.href=success?WHATSAPP_URL:'#';
+  resultPrimary.target=success?'_blank':'';
+  resultModal.classList.add('open');
+  resultModal.setAttribute('aria-hidden','false');
+  document.body.classList.add('modal-open');
+  setTimeout(function(){resultCard.focus();},50);
+}
+resultClose.addEventListener('click',closeResultModal);
+resultModal.addEventListener('click',function(e){if(e.target===resultModal)closeResultModal();});
+resultPrimary.addEventListener('click',function(e){
+  if(activeFailedForm){
+    e.preventDefault();
+    closeResultModal();
+    activeFailedForm.querySelector('[name="fullName"]').focus();
+  }else{
+    pushAnalytics({event:'whatsapp_click',click_location:'lead_success_modal'});
+  }
+});
+resultSecondary.addEventListener('click',function(){
+  if(activeFailedForm){
+    window.open(WHATSAPP_URL,'_blank','noopener,noreferrer');
+  }else{
+    closeResultModal();
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(!resultModal.classList.contains('open'))return;
+  if(e.key==='Escape'){e.preventDefault();closeResultModal();return;}
+  if(e.key!=='Tab')return;
+  var focusable=[].slice.call(resultModal.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+  if(!focusable.length)return;
+  var first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
+
+function setFieldError(form,name,message){
+  var input=form.elements[name];
+  var error=form.querySelector('[data-error-for="'+name+'"]');
+  if(input)input.setAttribute('aria-invalid',message?'true':'false');
+  if(error)error.textContent=message||'';
+}
+function validateLeadForm(form){
+  var values={
+    fullName:form.elements.fullName.value.trim(),
+    phone:form.elements.phone.value.trim().replace(/\s+/g,''),
+    billRange:form.elements.billRange.value,
+    location:form.elements.location.value.trim()
+  };
+  var valid=true;
+  setFieldError(form,'fullName','');
+  setFieldError(form,'phone','');
+  setFieldError(form,'billRange','');
+  setFieldError(form,'location','');
+  if(!values.fullName){setFieldError(form,'fullName','Full Name is required.');valid=false;}
+  if(!/^[6-9][0-9]{9}$/.test(values.phone)){setFieldError(form,'phone','Enter a valid 10-digit Indian mobile number.');valid=false;}
+  if(!values.billRange){setFieldError(form,'billRange','Monthly EB Bill Range is required.');valid=false;}
+  if(!valid){
+    var firstInvalid=form.querySelector('[aria-invalid="true"]');
+    if(firstInvalid)firstInvalid.focus();
+    return null;
+  }
+  form.elements.fullName.value=values.fullName;
+  form.elements.phone.value=values.phone;
+  form.elements.location.value=values.location;
+  return values;
+}
+function uuid(){
+  if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
+    var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16);
+  });
+}
+document.querySelectorAll('.crm-lead-form').forEach(function(form){
+  ['fullName','phone','billRange','location'].forEach(function(name){
+    form.elements[name].addEventListener('input',function(){setFieldError(form,name,'');});
+    form.elements[name].addEventListener('change',function(){setFieldError(form,name,'');});
+  });
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    if(form.dataset.submitting==='true')return;
+    var values=validateLeadForm(form);
+    if(!values)return;
+    var button=form.querySelector('button[type="submit"]');
+    var status=form.querySelector('.form-status');
+    form.dataset.submitting='true';
+    button.disabled=true;
+    button.setAttribute('aria-busy','true');
+    status.textContent='Submitting…';
+    try{
+      var controller=new AbortController();
+      var timeout=setTimeout(function(){controller.abort();},15000);
+      var response=await fetch('/api/leads',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          fullName:values.fullName,
+          phone:values.phone,
+          billRange:values.billRange,
+          location:values.location,
+          companyWebsite:form.elements.companyWebsite.value,
+          idempotencyKey:uuid(),
+          attribution:firstTouch
+        }),
+        signal:controller.signal
+      });
+      clearTimeout(timeout);
+      var result=await response.json().catch(function(){return {success:false};});
+      if(!response.ok||result.success!==true)throw new Error('SUBMISSION_FAILED');
+      form.reset();
+      status.textContent='';
+      var ctaModal=document.getElementById('ctaModal');
+      ctaModal.classList.remove('open');
+      ctaModal.setAttribute('aria-hidden','true');
+      openResultModal(true,form);
+      pushAnalytics({event:'generate_lead',lead_source:'website_form',form_name:'solar_consultation'});
+    }catch(error){
+      status.textContent='';
+      openResultModal(false,form);
+    }finally{
+      form.dataset.submitting='false';
+      button.disabled=false;
+      button.removeAttribute('aria-busy');
+    }
   });
 });
 
@@ -984,8 +1121,5 @@ document.querySelectorAll('form[action="https://crm.zoho.in/crm/WebToLeadForm"]'
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.classList.contains('open'))closeModal();});
 })();
 </script>
-<!-- Do not remove this --- Analytics Tracking code starts -->
-<script id="wf_anal" src="https://crm.zohopublic.in/crm/WebFormAnalyticsServeServlet?rid=c4de190503bbf28aee4307f8685c7f4af54c8cb2e34246e123b3214f8198f3991cbf4c760d5b4f6f4740e2223c414be2gid047976a83c00d2cbc6d79ad5cfb369a50d1c91c280941cd272ac755547afd816gidfa104509246e0eed1fab925980745d95a6aac25281f22cb34458cb4a1bddc826gid8212c8a70284dfeb98e66e485d46e3ec1a876fe3cca2f09c27ea4cd4b8e8b90f&tw=44d9bf660983bb2005b7ecb97feb6d545a0b60b8bf380d7bc8c63efb8e6b3c73&version=v2"></script>
-<!-- Do not remove this --- Analytics Tracking code ends. -->
 </body>
 </html>

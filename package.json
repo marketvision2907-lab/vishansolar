@@ -1,0 +1,11 @@
+{
+  "name": "vishan-solar",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "build": "node --check api/leads.js"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
