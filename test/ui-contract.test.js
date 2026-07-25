@@ -35,3 +35,33 @@ test('the true LCP image is eager, responsive, and high priority', () => {
   assert.match(html, /fetchpriority="high"/);
   assert.doesNotMatch(html, /\.hero-bg\{[^}]*background-image/);
 });
+
+test('keeps one CRM form and the existing lead payload contract', () => {
+  assert.equal((html.match(/<form\b/g) || []).length, 1);
+  assert.match(html, /fetch\('\/api\/leads'/);
+  for (const key of ['fullName', 'phone', 'billRange', 'location', 'companyWebsite', 'idempotencyKey', 'attribution']) {
+    assert.match(html, new RegExp(`${key}:`));
+  }
+  assert.doesNotMatch(html, /Monthly Amount|Two-Month Bill Amount|billingPeriod/);
+});
+
+test('primary CTAs activate the embedded form without a popup form', () => {
+  assert.match(html, /function activateForm/);
+  assert.match(html, /quote\.classList\.add\('form-highlight'\)/);
+  assert.match(html, /firstName\)\.focus/);
+  assert.doesNotMatch(html, /id="ctaModal"|id="leadFormModal"/);
+});
+
+test('SEO and accessibility contracts are present', () => {
+  assert.match(html, /Rooftop Solar Installation in Chennai \| Vishan Solar/);
+  assert.match(html, /application\/ld\+json/);
+  assert.match(html, /aria-expanded="false" aria-controls=/);
+  assert.match(html, /prefers-reduced-motion:reduce/);
+});
+
+test('keeps the testimonial scaffold hidden until genuine media is approved', () => {
+  assert.match(html, /id="testimonials"[^>]*hidden/);
+  assert.match(html, /id="testiTrack"/);
+  assert.match(html, /Keep this empty until genuine assets are approved/);
+  assert.doesNotMatch(html, /Ramesh K\.|Lakshmi R\.|Suresh B\.|Karthik M\./);
+});
