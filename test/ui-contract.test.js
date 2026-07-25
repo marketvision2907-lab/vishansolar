@@ -58,7 +58,6 @@ test('SEO and accessibility contracts are present', () => {
   assert.match(html, /aria-expanded="false" aria-controls=/);
   assert.match(html, /prefers-reduced-motion:reduce/);
 });
-
 test('keeps the testimonial scaffold hidden until genuine media is approved', () => {
   assert.match(html, /id="testimonials"[^>]*hidden/);
   assert.match(html, /id="testiTrack"/);
