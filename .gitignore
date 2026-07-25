@@ -1,4 +1,4 @@
-.preview-server.log
-.nocache_server.py
+public/
+.vercel/
 .env.local
 .env.*.local

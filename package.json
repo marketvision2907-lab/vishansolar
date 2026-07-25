@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node --test",
-    "build": "node --check api/leads.js"
+    "build": "node scripts/build.js"
   },
   "engines": {
     "node": "24.x"
