@@ -1006,6 +1006,9 @@ function closeResultModal(){
 function openResultModal(success,form){
   cancelResultTimer();
   lastResultFocus=document.activeElement;
+  if(!lastResultFocus||lastResultFocus===document.body||lastResultFocus.disabled){
+    lastResultFocus=form&&form.querySelector('button[type="submit"]');
+  }
   activeFailedForm=success?null:form;
   whatsappTracked=false;
   document.getElementById('resultIcon').textContent=success?'✓':'!';

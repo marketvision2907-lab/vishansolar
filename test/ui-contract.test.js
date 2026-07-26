@@ -27,6 +27,7 @@ test('success modal has the required content and pausable countdown', () => {
   assert.match(html, /resultCard\.addEventListener\('focusin'/);
   assert.match(html, /document\.hidden/);
   assert.match(html, /window\.addEventListener\('pagehide',cancelResultTimer\)/);
+  assert.match(html, /lastResultFocus=form&&form\.querySelector\('button\[type="submit"\]'\)/);
 });
 
 test('the true LCP image is eager, responsive, and high priority', () => {
