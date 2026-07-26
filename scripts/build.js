@@ -9,7 +9,19 @@ if (path.dirname(output) !== root || path.basename(output) !== 'public') {
 
 fs.rmSync(output, { recursive: true, force: true });
 fs.mkdirSync(output, { recursive: true });
-for (const item of ['index.html', 'robots.txt', 'sitemap.xml', 'assets']) {
+for (const item of [
+  'index.html',
+  'robots.txt',
+  'sitemap.xml',
+  'site.webmanifest',
+  'favicon.ico',
+  'favicon-16x16.png',
+  'favicon-32x32.png',
+  'apple-touch-icon.png',
+  'android-chrome-192x192.png',
+  'android-chrome-512x512.png',
+  'assets',
+]) {
   fs.cpSync(path.join(root, item), path.join(output, item), { recursive: true });
 }
 
