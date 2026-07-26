@@ -1,6 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { _test } = require('../api/leads');
+const fs = require('node:fs');
+const path = require('node:path');
+const apiSource = fs.readFileSync(path.join(__dirname, '..', 'api', 'leads.js'), 'utf8');
 
 const valid = {
   fullName: '  Test Customer  ',
@@ -18,14 +21,28 @@ const valid = {
 test('normalises a valid lead without inventing attribution', () => {
   const result = _test.validate(valid);
   assert.equal(result.lead.fullName, 'Test Customer');
-  assert.equal(result.lead.phone, '9876543210');
+  assert.equal(result.lead.phone, '+919876543210');
   assert.equal(result.lead.location, 'Chennai');
   assert.equal(result.lead.attribution.utmSource, 'facebook');
   assert.equal(result.lead.attribution.utmMedium, '');
 });
 
+test('normalises common Indian autofill formats without truncation', () => {
+  for (const input of [
+    '6385547200',
+    '+91 6385547200',
+    '91 6385547200',
+    '0916385547200',
+    '+91-63855-47200',
+  ]) {
+    assert.equal(_test.normalizeIndianPhone(input), '+916385547200');
+  }
+});
+
 test('rejects invalid Indian mobile numbers', () => {
   assert.equal(_test.validate({ ...valid, phone: '1234567890' }).error, 'INVALID_PHONE');
+  assert.equal(_test.validate({ ...valid, phone: '+91 638554720012' }).error, 'INVALID_PHONE');
+  assert.equal(_test.validate({ ...valid, phone: '63855abc00' }).error, 'INVALID_PHONE');
 });
 
 test('rejects the honeypot before CRM submission', () => {
@@ -37,7 +54,7 @@ test('maps exact Zoho API field names and omits blank optional values', () => {
   const record = _test.crmRecord(lead);
   assert.deepEqual(record, {
     Last_Name: 'Test Customer',
-    Phone: '9876543210',
+    Phone: '+919876543210',
     Monthly_EB_Bill_Range: '₹5,000 – ₹10,000',
     Lead_Source: 'Advertisement',
     Lead_Status: 'Not Contacted',
@@ -45,6 +62,20 @@ test('maps exact Zoho API field names and omits blank optional values', () => {
     UTM_Source: 'facebook',
     Landing_Page_URL: 'https://www.vishansolar.com/?utm_source=facebook',
   });
+});
+
+test('classifies only required Zoho HTTP statuses as transient', () => {
+  for (const status of [429, 500, 502, 503, 504]) assert.equal(_test.transientStatus(status), true);
+  for (const status of [400, 401, 403, 404, 422]) assert.equal(_test.transientStatus(status), false);
+});
+
+test('implements three-attempt backoff and forced OAuth refresh without logging secrets', () => {
+  assert.match(apiSource, /const MAX_ZOHO_ATTEMPTS = 3/);
+  assert.match(apiSource, /RETRY_BASE_DELAY_MS \* \(2 \*\* \(attempt - 1\)\)/);
+  assert.match(apiSource, /getAccessToken\(env, deadline, true\)/);
+  assert.match(apiSource, /phone: validated\.lead\.phone/);
+  assert.match(apiSource, /zohoStatus:/);
+  assert.doesNotMatch(apiSource, /console\.(?:info|warn|error)\([^)]*(?:ZOHO_CLIENT_SECRET|ZOHO_REFRESH_TOKEN|access_token)/s);
 });
 
 function invoke(method, headers, body) {

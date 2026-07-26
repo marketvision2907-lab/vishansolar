@@ -65,6 +65,15 @@ test('keeps the testimonial scaffold hidden until genuine media is approved', ()
   assert.doesNotMatch(html, /Ramesh K\.|Lakshmi R\.|Suresh B\.|Karthik M\./);
 });
 
+test('accepts country-code autofill and retries transient API failures', () => {
+  assert.doesNotMatch(html, /id="phone"[^>]*maxlength=/);
+  assert.match(html, /function normalizeIndianPhone/);
+  assert.match(html, /return '\+91'\+digits/);
+  assert.match(html, /var retryableStatus=\{429:true,500:true,502:true,503:true,504:true\}/);
+  assert.match(html, /for\(var attempt=0;attempt<3;attempt\+\+\)/);
+  assert.match(html, /idempotencyKey:idempotencyKey/);
+});
+
 test('implements the approved final hero and financing composition', () => {
   assert.match(html, /grid-template-columns:minmax\(190px,26%\) minmax\(500px,46%\) minmax\(380px,28%\)/);
   assert.equal((html.match(/class="trust-card"/g) || []).length, 4);

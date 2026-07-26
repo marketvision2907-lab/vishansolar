@@ -5,9 +5,11 @@ const MAX_BODY_BYTES = 16 * 1024;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
 const IDEMPOTENCY_TTL_MS = 30 * 60 * 1000;
-const ENDPOINT_TIMEOUT_MS = 13 * 1000;
+const ENDPOINT_TIMEOUT_MS = 27 * 1000;
 const TOKEN_TIMEOUT_MS = 5 * 1000;
-const CRM_TIMEOUT_MS = 7 * 1000;
+const CRM_TIMEOUT_MS = 6 * 1000;
+const MAX_ZOHO_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 250;
 const TOKEN_EXPIRY_SAFETY_MS = 5 * 60 * 1000;
 const TOKEN_CACHE_KEY = 'zoho-access-token-v1';
 const ALLOWED_BILL_RANGES = new Set([
@@ -54,6 +56,17 @@ function safeString(value, maxLength) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
 
+function normalizeIndianPhone(value) {
+  const input = typeof value === 'string' ? value.trim() : '';
+  if (!input || /[^\d+\s()-]/.test(input) || (input.match(/\+/g) || []).length > 1 || (input.includes('+') && !input.startsWith('+'))) {
+    return '';
+  }
+  let digits = input.replace(/\D/g, '');
+  if (/^0?91[6-9]\d{9}$/.test(digits)) digits = digits.replace(/^0?91/, '');
+  if (!/^[6-9]\d{9}$/.test(digits)) return '';
+  return `+91${digits}`;
+}
+
 function safeUrl(value) {
   const text = safeString(value, 2048);
   if (!text) return '';
@@ -76,7 +89,7 @@ function parseBody(req) {
 function validate(body) {
   const lead = {
     fullName: safeString(body.fullName, 80),
-    phone: safeString(body.phone, 20).replace(/[\s()-]/g, '').replace(/^(\+91|91)/, ''),
+    phone: normalizeIndianPhone(body.phone),
     billRange: safeString(body.billRange, 80),
     location: safeString(body.location, 255),
     honeypot: safeString(body.companyWebsite, 200),
@@ -96,7 +109,7 @@ function validate(body) {
 
   if (lead.honeypot) return { error: 'SPAM_REJECTED' };
   if (!lead.fullName) return { error: 'INVALID_NAME' };
-  if (!/^[6-9]\d{9}$/.test(lead.phone)) return { error: 'INVALID_PHONE' };
+  if (!/^\+91[6-9]\d{9}$/.test(lead.phone)) return { error: 'INVALID_PHONE' };
   if (!ALLOWED_BILL_RANGES.has(lead.billRange)) return { error: 'INVALID_BILL_RANGE' };
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(lead.idempotencyKey)) {
     return { error: 'INVALID_IDEMPOTENCY_KEY' };
@@ -175,7 +188,51 @@ function validToken(entry) {
   return Boolean(entry?.token && Number(entry.expiresAt) - Date.now() > TOKEN_EXPIRY_SAFETY_MS);
 }
 
-async function getAccessToken(env, deadline) {
+async function refreshAccessToken(env, params, deadline) {
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_ZOHO_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetchWithTimeout(
+        `${env.ZOHO_ACCOUNTS_URL}/oauth/v2/token`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params,
+        },
+        TOKEN_TIMEOUT_MS,
+        deadline,
+      );
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && typeof data.access_token === 'string') return data;
+      if (!transientStatus(response.status) || attempt >= MAX_ZOHO_ATTEMPTS) {
+        throw zohoError('ZOHO_AUTH_FAILED', response.status, false);
+      }
+      lastError = zohoError('ZOHO_AUTH_TEMPORARY_FAILURE', response.status, true);
+    } catch (error) {
+      if (error.message === 'ZOHO_AUTH_FAILED') throw error;
+      lastError = error;
+      if (attempt >= MAX_ZOHO_ATTEMPTS) throw error;
+    }
+    await sleep(RETRY_BASE_DELAY_MS * (2 ** (attempt - 1)), deadline);
+  }
+  throw lastError || new Error('ZOHO_AUTH_FAILED');
+}
+
+async function clearAccessToken() {
+  localTokenCache = null;
+  globalThis.__vishanZohoToken = null;
+  const cache = runtimeCache();
+  if (cache) {
+    try {
+      await cache.delete(TOKEN_CACHE_KEY);
+    } catch {
+      console.warn('zoho_token_cache_delete_failed');
+    }
+  }
+}
+
+async function getAccessToken(env, deadline, forceRefresh = false) {
+  if (forceRefresh) await clearAccessToken();
   if (validToken(localTokenCache)) return { token: localTokenCache.token, source: 'memory' };
 
   const cache = runtimeCache();
@@ -200,18 +257,7 @@ async function getAccessToken(env, deadline) {
     client_secret: env.ZOHO_CLIENT_SECRET,
     grant_type: 'refresh_token',
   });
-  const response = await fetchWithTimeout(
-    `${env.ZOHO_ACCOUNTS_URL}/oauth/v2/token`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params,
-    },
-    TOKEN_TIMEOUT_MS,
-    deadline,
-  );
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || typeof data.access_token !== 'string') throw new Error('ZOHO_AUTH_FAILED');
+    const data = await refreshAccessToken(env, params, deadline);
     const expiresInSeconds = Math.max(600, Number(data.expires_in) || 3600);
     const entry = { token: data.access_token, expiresAt: Date.now() + expiresInSeconds * 1000 };
     localTokenCache = entry;
@@ -254,6 +300,22 @@ async function zohoRequest(env, token, path, options = {}, deadline) {
   );
 }
 
+function zohoError(code, status, retryable = false) {
+  const error = new Error(code);
+  error.zohoStatus = status;
+  error.retryable = retryable;
+  return error;
+}
+
+function transientStatus(status) {
+  return status === 429 || [500, 502, 503, 504].includes(status);
+}
+
+function sleep(ms, deadline) {
+  const delay = Math.min(ms, Math.max(0, deadline - Date.now() - 1));
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
 function crmRecord(lead) {
   const record = {
     [FIELD.lastName]: lead.fullName,
@@ -283,7 +345,13 @@ async function findExistingLead(env, token, phone, deadline) {
     method: 'GET',
   }, deadline);
   if (response.status === 204) return false;
-  if (!response.ok) throw new Error(response.status === 401 ? 'ZOHO_AUTH_EXPIRED' : 'ZOHO_LOOKUP_FAILED');
+  if (!response.ok) {
+    throw zohoError(
+      response.status === 401 ? 'ZOHO_AUTH_EXPIRED' : 'ZOHO_LOOKUP_FAILED',
+      response.status,
+      transientStatus(response.status),
+    );
+  }
   const data = await response.json().catch(() => ({}));
   return Boolean(data.data?.[0]?.id);
 }
@@ -300,25 +368,45 @@ async function createLead(env, token, lead, deadline) {
   const result = data.data?.[0];
   if (response.ok && result?.status === 'success' && result?.details?.id) return true;
   if (result?.code === 'DUPLICATE_DATA') return true;
-  throw new Error(response.status === 401 ? 'ZOHO_AUTH_EXPIRED' : 'ZOHO_CREATE_FAILED');
+  throw zohoError(
+    response.status === 401 ? 'ZOHO_AUTH_EXPIRED' : 'ZOHO_CREATE_FAILED',
+    response.status,
+    transientStatus(response.status),
+  );
 }
 
 async function submitLead(lead, deadline) {
   const env = requiredEnv();
   const tokenStart = nowMs();
-  const access = await getAccessToken(env, deadline);
+  let access = await getAccessToken(env, deadline);
   const tokenMs = nowMs() - tokenStart;
   const crmStart = nowMs();
-  if (await findExistingLead(env, access.token, lead.phone, deadline)) {
-    return { duplicate: true, tokenMs, crmMs: nowMs() - crmStart, tokenSource: access.source };
+  let lastStatus = null;
+  for (let attempt = 1; attempt <= MAX_ZOHO_ATTEMPTS; attempt += 1) {
+    try {
+      if (await findExistingLead(env, access.token, lead.phone, deadline)) {
+        return { duplicate: true, tokenMs, crmMs: nowMs() - crmStart, tokenSource: access.source, zohoStatus: 200 };
+      }
+      await createLead(env, access.token, lead, deadline);
+      return { duplicate: false, tokenMs, crmMs: nowMs() - crmStart, tokenSource: access.source, zohoStatus: 201 };
+    } catch (error) {
+      lastStatus = error.zohoStatus || null;
+      if (error.message === 'ZOHO_AUTH_EXPIRED' && attempt < MAX_ZOHO_ATTEMPTS) {
+        access = await getAccessToken(env, deadline, true);
+      } else {
+        const temporaryNetworkFailure = error.name === 'AbortError' || error instanceof TypeError;
+        if ((!error.retryable && !temporaryNetworkFailure) || attempt >= MAX_ZOHO_ATTEMPTS) throw error;
+      }
+      await sleep(RETRY_BASE_DELAY_MS * (2 ** (attempt - 1)), deadline);
+    }
   }
-  await createLead(env, access.token, lead, deadline);
-  return { duplicate: false, tokenMs, crmMs: nowMs() - crmStart, tokenSource: access.source };
+  throw zohoError('ZOHO_RETRY_EXHAUSTED', lastStatus, false);
 }
 
 module.exports = async function handler(req, res) {
   const requestStart = nowMs();
   const deadline = Date.now() + ENDPOINT_TIMEOUT_MS;
+  const requestId = crypto.randomUUID();
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return reply(res, 405, { success: false, error: 'METHOD_NOT_ALLOWED' });
@@ -366,7 +454,10 @@ module.exports = async function handler(req, res) {
     const result = { status: 200, payload: { success: true } };
     idempotencyCache.set(cacheKey, { createdAt: now, result });
     console.info('lead_submission_success', {
-      requestId: cacheKey.slice(0, 12),
+      timestamp: new Date().toISOString(),
+      requestId,
+      phone: validated.lead.phone,
+      zohoStatus: outcome.zohoStatus,
       duplicate: outcome.duplicate,
       validationMs: Math.round(validationMs),
       tokenMs: Math.round(outcome.tokenMs),
@@ -386,8 +477,12 @@ module.exports = async function handler(req, res) {
             ? 'SERVER_CONFIGURATION_ERROR'
             : 'CRM_UNAVAILABLE';
     console.error('lead_submission_failed', {
-      requestId: cacheKey.slice(0, 12),
+      timestamp: new Date().toISOString(),
+      requestId,
+      phone: validated.lead.phone,
+      zohoStatus: error?.zohoStatus || null,
       code,
+      failureReason: error?.message || 'UNKNOWN',
       validationMs: Math.round(validationMs),
       totalMs: Math.round(nowMs() - requestStart),
     });
@@ -395,4 +490,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { validate, crmRecord, isRateLimited };
+module.exports._test = { normalizeIndianPhone, validate, crmRecord, isRateLimited, transientStatus };

@@ -557,7 +557,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <form id="leadForm" class="crm-lead-form" novalidate>
         <div class="hp-field" aria-hidden="true"><label>Company Website<input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" /></label></div>
         <div class="field"><label for="fullName">Full Name <span class="req">*</span></label><input type="text" id="fullName" name="fullName" placeholder="Enter your full name" maxlength="80" autocomplete="name" required /><span class="field-error" data-error-for="fullName"></span></div>
-        <div class="field"><label for="phone">Phone Number <span class="req">*</span></label><input type="tel" id="phone" name="phone" placeholder="Enter your 10-digit mobile number" inputmode="numeric" maxlength="10" autocomplete="tel" required /><span class="field-error" data-error-for="phone"></span></div>
+        <div class="field"><label for="phone">Phone Number <span class="req">*</span></label><input type="tel" id="phone" name="phone" placeholder="Enter your 10-digit mobile number" inputmode="tel" autocomplete="tel" required /><span class="field-error" data-error-for="phone"></span></div>
         <div class="field"><label for="billRange">Monthly EB Bill Range <span class="req">*</span></label>
           <select id="billRange" name="billRange" required>
             <option value="" disabled selected>Select your monthly bill range</option>
@@ -1060,10 +1060,18 @@ function setFieldError(form,name,message){
   if(input)input.setAttribute('aria-invalid',message?'true':'false');
   if(error)error.textContent=message||'';
 }
+function normalizeIndianPhone(value){
+  var input=String(value||'').trim();
+  if(!input||/[^\d+\s()-]/.test(input)||(input.match(/\+/g)||[]).length>1||(input.indexOf('+')!==-1&&input.charAt(0)!=='+'))return '';
+  var digits=input.replace(/\D/g,'');
+  if(/^0?91[6-9]\d{9}$/.test(digits))digits=digits.replace(/^0?91/,'');
+  if(!/^[6-9]\d{9}$/.test(digits))return '';
+  return '+91'+digits;
+}
 function validateLeadForm(form){
   var values={
     fullName:form.elements.fullName.value.trim(),
-    phone:form.elements.phone.value.trim().replace(/\s+/g,''),
+    phone:normalizeIndianPhone(form.elements.phone.value),
     billRange:form.elements.billRange.value,
     location:form.elements.location.value.trim()
   };
@@ -1073,7 +1081,7 @@ function validateLeadForm(form){
   setFieldError(form,'billRange','');
   setFieldError(form,'location','');
   if(!values.fullName){setFieldError(form,'fullName','Full Name is required.');valid=false;}
-  if(!/^[6-9][0-9]{9}$/.test(values.phone)){setFieldError(form,'phone','Enter a valid 10-digit Indian mobile number.');valid=false;}
+  if(!/^\+91[6-9][0-9]{9}$/.test(values.phone)){setFieldError(form,'phone','Enter a valid Indian mobile number.');valid=false;}
   if(!values.billRange){setFieldError(form,'billRange','Monthly EB Bill Range is required.');valid=false;}
   if(!valid){
     var firstInvalid=form.querySelector('[aria-invalid="true"]');
@@ -1090,6 +1098,32 @@ function uuid(){
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
     var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16);
   });
+}
+function wait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
+async function submitLeadRequest(payload){
+  var retryableStatus={429:true,500:true,502:true,503:true,504:true};
+  var lastError;
+  for(var attempt=0;attempt<3;attempt++){
+    var controller=new AbortController();
+    var timeout=setTimeout(function(){controller.abort();},35000);
+    try{
+      var response=await fetch('/api/leads',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload),
+        signal:controller.signal
+      });
+      clearTimeout(timeout);
+      if(retryableStatus[response.status]&&attempt<2){await wait(500*Math.pow(2,attempt));continue;}
+      return response;
+    }catch(error){
+      clearTimeout(timeout);
+      lastError=error;
+      if(attempt>=2)throw error;
+      await wait(500*Math.pow(2,attempt));
+    }
+  }
+  throw lastError||new Error('SUBMISSION_FAILED');
 }
 document.querySelectorAll('.crm-lead-form').forEach(function(form){
   ['fullName','phone','billRange','location'].forEach(function(name){
@@ -1110,23 +1144,16 @@ document.querySelectorAll('.crm-lead-form').forEach(function(form){
     button.innerHTML='<span class="submit-spinner" aria-hidden="true"></span><span>Submitting your request...</span>';
     status.textContent='Please wait while we securely submit your details.';
     try{
-      var controller=new AbortController();
-      var timeout=setTimeout(function(){controller.abort();},15000);
-      var response=await fetch('/api/leads',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
+      var idempotencyKey=uuid();
+      var response=await submitLeadRequest({
           fullName:values.fullName,
           phone:values.phone,
           billRange:values.billRange,
           location:values.location,
           companyWebsite:form.elements.companyWebsite.value,
-          idempotencyKey:uuid(),
+          idempotencyKey:idempotencyKey,
           attribution:firstTouch
-        }),
-        signal:controller.signal
       });
-      clearTimeout(timeout);
       var result=await response.json().catch(function(){return {success:false};});
       if(!response.ok||result.success!==true)throw new Error('SUBMISSION_FAILED');
       form.reset();

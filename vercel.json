@@ -3,7 +3,7 @@
   "regions": ["bom1"],
   "functions": {
     "api/leads.js": {
-      "maxDuration": 15
+      "maxDuration": 30
     }
   },
   "headers": [
