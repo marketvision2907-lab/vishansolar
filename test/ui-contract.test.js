@@ -57,6 +57,8 @@ test('SEO and accessibility contracts are present', () => {
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /aria-expanded="false" aria-controls=/);
   assert.match(html, /prefers-reduced-motion:reduce/);
+  assert.match(html, /event\.key==='Escape'.*closeNavigation\(true\)/);
+  assert.match(html, /\.burger:focus-visible,\.faq-q:focus-visible/);
 });
 test('keeps the testimonial scaffold hidden until genuine media is approved', () => {
   assert.match(html, /id="testimonials"[^>]*hidden/);

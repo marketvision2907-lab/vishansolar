@@ -69,7 +69,7 @@ ul{list-style:none}
 
 /* ============ BUTTONS ============ */
 .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:15px;padding:14px 24px;border-radius:11px;cursor:pointer;border:none;transition:.2s ease;white-space:nowrap}
-.btn:focus-visible,.modal-close:focus-visible{outline:3px solid rgba(30,85,214,.35);outline-offset:3px}
+.btn:focus-visible,.modal-close:focus-visible,.burger:focus-visible,.faq-q:focus-visible,.wa-float:focus-visible,a:focus-visible{outline:3px solid rgba(30,85,214,.35);outline-offset:3px}
 .btn:disabled{cursor:wait;transform:none;opacity:.82}
 .btn svg{width:18px;height:18px}
 .btn-blue{background:var(--blue);color:#fff;box-shadow:0 8px 20px rgba(30,85,214,.28)}
@@ -834,18 +834,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <script>
-document.getElementById('burger').onclick=function(){
-  var n=document.querySelector('.navlinks');
-  var open=n.style.display==='flex';
-  n.style.display=open?'none':'flex';
-  this.setAttribute('aria-expanded',String(!open));
-  n.style.flexDirection='column';n.style.position='absolute';n.style.top='70px';n.style.right='24px';
-  n.style.background='#fff';n.style.padding='18px 22px';n.style.borderRadius='14px';n.style.boxShadow='0 12px 30px rgba(16,42,94,.16)';n.style.gap='14px';
+var burger=document.getElementById('burger');
+var primaryNav=document.getElementById('primaryNav');
+function closeNavigation(restoreFocus){
+  primaryNav.style.display='none';
+  burger.setAttribute('aria-expanded','false');
+  burger.setAttribute('aria-label','Open navigation menu');
+  if(restoreFocus)burger.focus();
+}
+burger.onclick=function(){
+  var open=this.getAttribute('aria-expanded')==='true';
+  if(open){closeNavigation(false);return;}
+  primaryNav.style.display='flex';
+  this.setAttribute('aria-expanded','true');
+  this.setAttribute('aria-label','Close navigation menu');
+  primaryNav.style.flexDirection='column';primaryNav.style.position='absolute';primaryNav.style.top='70px';primaryNav.style.right='24px';
+  primaryNav.style.background='#fff';primaryNav.style.padding='18px 22px';primaryNav.style.borderRadius='14px';primaryNav.style.boxShadow='0 12px 30px rgba(16,42,94,.16)';primaryNav.style.gap='14px';
 };
 document.querySelectorAll('.navlinks a').forEach(function(link){
   link.addEventListener('click',function(){
-    if(window.innerWidth<=900){document.querySelector('.navlinks').style.display='none';document.getElementById('burger').setAttribute('aria-expanded','false');}
+    if(window.innerWidth<=900)closeNavigation(false);
   });
+});
+document.addEventListener('keydown',function(event){
+  if(event.key==='Escape'&&burger.getAttribute('aria-expanded')==='true')closeNavigation(true);
 });
 
 /* Reveal major sections once without delaying essential above-fold content. */
