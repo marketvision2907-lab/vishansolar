@@ -1101,7 +1101,7 @@ function uuid(){
 }
 function wait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
 async function submitLeadRequest(payload){
-  var retryableStatus={429:true,500:true,502:true,503:true,504:true};
+    var retryableStatus={500:true,502:true,503:true,504:true};
   var lastError;
   for(var attempt=0;attempt<3;attempt++){
     var controller=new AbortController();

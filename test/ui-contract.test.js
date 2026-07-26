@@ -69,7 +69,8 @@ test('accepts country-code autofill and retries transient API failures', () => {
   assert.doesNotMatch(html, /id="phone"[^>]*maxlength=/);
   assert.match(html, /function normalizeIndianPhone/);
   assert.match(html, /return '\+91'\+digits/);
-  assert.match(html, /var retryableStatus=\{429:true,500:true,502:true,503:true,504:true\}/);
+  assert.match(html, /var retryableStatus=\{500:true,502:true,503:true,504:true\}/);
+  assert.doesNotMatch(html, /retryableStatus=\{[^}]*429:true/);
   assert.match(html, /for\(var attempt=0;attempt<3;attempt\+\+\)/);
   assert.match(html, /idempotencyKey:idempotencyKey/);
 });
