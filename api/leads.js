@@ -5,6 +5,8 @@ const MAX_BODY_BYTES = 16 * 1024;
 const ENDPOINT_TIMEOUT_MS = 27 * 1000;
 const TOKEN_TIMEOUT_MS = 5 * 1000;
 const CRM_TIMEOUT_MS = 6 * 1000;
+const META_TIMEOUT_MS = 3 * 1000;
+const DEFAULT_META_GRAPH_API_VERSION = 'v25.0';
 const MAX_ZOHO_ATTEMPTS = 3;
 const RETRY_BASE_DELAY_MS = 250;
 const TOKEN_EXPIRY_SAFETY_MS = 5 * 60 * 1000;
@@ -84,6 +86,12 @@ function validate(body) {
     location: safeString(body.location, 255),
     honeypot: safeString(body.companyWebsite, 200),
     submissionId: safeString(body.idempotencyKey, 80),
+    meta: {
+      eventId: safeString(body.meta?.eventId, 100),
+      fbp: safeString(body.meta?.fbp, 255),
+      fbc: safeString(body.meta?.fbc, 255),
+      eventSourceUrl: safeUrl(body.meta?.eventSourceUrl),
+    },
     attribution: {
       utmSource: safeString(body.attribution?.utm_source, 255),
       utmMedium: safeString(body.attribution?.utm_medium, 255),
@@ -101,6 +109,8 @@ function validate(body) {
   if (!/^\+91[6-9]\d{9}$/.test(lead.phone)) return { error: 'INVALID_PHONE' };
   if (!ALLOWED_BILL_RANGES.has(lead.billRange)) return { error: 'INVALID_BILL_RANGE' };
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(lead.submissionId)) return { error: 'INVALID_IDEMPOTENCY_KEY' };
+  if (!lead.meta.eventId) lead.meta.eventId = `vishan_lead_${lead.submissionId}`;
+  if (lead.meta.eventId !== `vishan_lead_${lead.submissionId}`) return { error: 'INVALID_META_EVENT_ID' };
   return { lead };
 }
 
@@ -166,9 +176,63 @@ function logEvent(level, event, context, fields = {}) {
     timestamp: new Date().toISOString(),
     requestId: context.requestId,
     websiteSubmissionId: context.submissionId,
-    phone: context.phone,
     ...fields,
   });
+}
+
+function sha256(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function clientIp(req) {
+  const forwarded = safeString(req.headers['x-forwarded-for'], 255).split(',')[0].trim();
+  return forwarded || safeString(req.socket?.remoteAddress, 64);
+}
+
+function metaConfig() {
+  const pixelId = safeString(process.env.META_PIXEL_ID, 32);
+  const accessToken = safeString(process.env.META_CONVERSIONS_API_ACCESS_TOKEN, 2048);
+  const graphApiVersion = safeString(process.env.META_GRAPH_API_VERSION, 16) || DEFAULT_META_GRAPH_API_VERSION;
+  const testEventCode = safeString(process.env.META_TEST_EVENT_CODE, 255);
+  if (!pixelId || !accessToken) return null;
+  if (!/^\d+$/.test(pixelId) || !/^v\d+\.\d+$/.test(graphApiVersion)) throw new Error('INVALID_META_CONFIGURATION');
+  return { pixelId, accessToken, graphApiVersion, testEventCode };
+}
+
+async function sendMetaLead(lead, req, deadline) {
+  const config = metaConfig();
+  if (!config) return { sent: false, reason: 'NOT_CONFIGURED' };
+  const userData = { ph: [sha256(lead.phone.replace(/\D/g, ''))] };
+  const ip = clientIp(req);
+  const userAgent = safeString(req.headers['user-agent'], 512);
+  if (ip) userData.client_ip_address = ip;
+  if (userAgent) userData.client_user_agent = userAgent;
+  if (lead.meta.fbp) userData.fbp = lead.meta.fbp;
+  if (lead.meta.fbc) userData.fbc = lead.meta.fbc;
+
+  const payload = {
+    data: [{
+      event_name: 'Lead',
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: lead.meta.eventId,
+      action_source: 'website',
+      event_source_url: lead.meta.eventSourceUrl || lead.attribution.landingPageUrl || 'https://www.vishansolar.com/',
+      user_data: userData,
+    }],
+  };
+  if (config.testEventCode) payload.test_event_code = config.testEventCode;
+  const endpoint = `https://graph.facebook.com/${config.graphApiVersion}/${config.pixelId}/events?access_token=${encodeURIComponent(config.accessToken)}`;
+  const response = await fetchWithTimeout(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': JSON_TYPE },
+    body: JSON.stringify(payload),
+  }, META_TIMEOUT_MS, deadline);
+  if (!response.ok) {
+    const error = new Error('META_CAPI_REJECTED');
+    error.metaStatus = response.status;
+    throw error;
+  }
+  return { sent: true, status: response.status };
 }
 
 function sanitizedFailure(error) {
@@ -384,7 +448,7 @@ async function handler(req, res) {
   const validated = validate(body);
   if (validated.error) return reply(res, validated.error === 'SPAM_REJECTED' ? 400 : 422, { success: false, error: validated.error });
 
-  const context = { requestId, submissionId: validated.lead.submissionId, phone: validated.lead.phone };
+  const context = { requestId, submissionId: validated.lead.submissionId };
   try {
     const outcome = await submitLead(validated.lead, deadline, context);
     logEvent('info', 'lead_submission_success', context, {
@@ -393,7 +457,21 @@ async function handler(req, res) {
       created: outcome.created, idempotentReplay: outcome.idempotentReplay,
       durationMs: Math.round(nowMs() - requestStart), failureReason: null,
     });
-    return reply(res, 200, { success: true, requestId });
+    try {
+      const metaOutcome = await sendMetaLead(validated.lead, req, deadline);
+      logEvent(metaOutcome.sent ? 'info' : 'warn', metaOutcome.sent ? 'meta_capi_success' : 'meta_capi_skipped', context, {
+        metaEventId: validated.lead.meta.eventId,
+        metaStatus: metaOutcome.status || null,
+        failureReason: metaOutcome.reason || null,
+      });
+    } catch (metaError) {
+      logEvent('warn', 'meta_capi_failed', context, {
+        metaEventId: validated.lead.meta.eventId,
+        metaStatus: metaError.metaStatus || null,
+        failureReason: metaError.name === 'AbortError' ? 'TIMEOUT' : metaError instanceof TypeError ? 'NETWORK_FAILURE' : 'META_CAPI_REJECTED',
+      });
+    }
+    return reply(res, 200, { success: true, requestId, eventId: validated.lead.meta.eventId });
   } catch (error) {
     const code = error.message?.startsWith('MISSING_') ? 'SERVER_CONFIGURATION_ERROR'
       : error.message === 'ZOHO_AUTH_EXPIRED' || error.message === 'ZOHO_AUTH_FAILED' ? 'CRM_AUTH_UNAVAILABLE'
@@ -410,6 +488,7 @@ async function handler(req, res) {
 module.exports = handler;
 module.exports._test = {
   normalizeIndianPhone, validate, crmRecord, transientStatus, submitLead, sanitizedFailure,
+  sha256, clientIp, metaConfig, sendMetaLead,
   resetToken() {
     localTokenCache = null;
     tokenRefreshPromise = null;

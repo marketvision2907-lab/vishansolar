@@ -23,6 +23,11 @@ const env = {
   ZOHO_ACCOUNTS_URL: 'https://accounts.zoho.test',
   ZOHO_API_DOMAIN: 'https://api.zoho.test',
 };
+const metaEnv = {
+  META_PIXEL_ID: '1623722882692138',
+  META_CONVERSIONS_API_ACCESS_TOKEN: 'meta-test-token-secret',
+  META_GRAPH_API_VERSION: 'v25.0',
+};
 
 function response(status, body = {}) {
   return { status, ok: status >= 200 && status < 300, json: async () => body };
@@ -39,10 +44,11 @@ function duplicate(id = 'lead-1') {
 function verified(id, submissionId) {
   return response(200, { data: [{ id, Website_Submission_ID: submissionId }] });
 }
-async function withMock(fetchImpl, action) {
+async function withMock(fetchImpl, action, extraEnv = {}) {
   const oldFetch = global.fetch;
   const oldEnv = {};
-  for (const [key, value] of Object.entries(env)) {
+  const activeEnv = { ...env, ...extraEnv };
+  for (const [key, value] of Object.entries(activeEnv)) {
     oldEnv[key] = process.env[key];
     process.env[key] = value;
   }
@@ -51,7 +57,7 @@ async function withMock(fetchImpl, action) {
   try { return await action(); } finally {
     global.fetch = oldFetch;
     _test.resetToken();
-    for (const key of Object.keys(env)) {
+    for (const key of Object.keys(activeEnv)) {
       if (oldEnv[key] === undefined) delete process.env[key];
       else process.env[key] = oldEnv[key];
     }
@@ -167,8 +173,97 @@ test('expired token refreshes and retries safely', async () => {
     creates += 1;
     return creates === 1 ? response(401, {}) : created('lead-refreshed');
   }, async () => assert.equal((await invoke()).status, 200));
-  assert.equal(tokens, 1);
+  assert.equal(tokens, 2);
   assert.equal(creates, 2);
+});
+
+test('successful Zoho lead sends one CAPI Lead with matching event ID and normalized user data', async () => {
+  const submissionId = valid.idempotencyKey;
+  const eventId = `vishan_lead_${submissionId}`;
+  let capiPayload;
+  let capiCalls = 0;
+  const body = {
+    ...valid,
+    meta: {
+      eventId,
+      fbp: 'fb.1.1700000000000.111111111',
+      fbc: 'fb.1.1700000000000.test-fbclid',
+      eventSourceUrl: 'https://www.vishansolar.com/?utm_source=meta',
+    },
+  };
+  await withMock(async (url, options) => {
+    if (url.includes('/oauth/')) return tokenResponse();
+    if (url.includes('graph.facebook.com')) {
+      capiCalls += 1;
+      capiPayload = JSON.parse(options.body);
+      return response(200, { events_received: 1 });
+    }
+    return created('lead-meta');
+  }, async () => {
+    const result = await invoke(body, {
+      'content-type': 'application/json',
+      'x-forwarded-for': '203.0.113.7, 10.0.0.1',
+      'user-agent': 'Vishan Meta Test Agent',
+    });
+    assert.equal(result.status, 200);
+    assert.equal(result.body.success, true);
+    assert.equal(result.body.eventId, eventId);
+  }, metaEnv);
+  assert.equal(capiCalls, 1);
+  assert.equal(capiPayload.data[0].event_name, 'Lead');
+  assert.equal(capiPayload.data[0].event_id, eventId);
+  assert.equal(capiPayload.data[0].action_source, 'website');
+  assert.equal(capiPayload.data[0].user_data.ph[0], _test.sha256('919876543210'));
+  assert.equal(capiPayload.data[0].user_data.client_ip_address, '203.0.113.7');
+  assert.equal(capiPayload.data[0].user_data.client_user_agent, 'Vishan Meta Test Agent');
+  assert.equal(capiPayload.data[0].user_data.fbp, body.meta.fbp);
+  assert.equal(capiPayload.data[0].user_data.fbc, body.meta.fbc);
+  assert.doesNotMatch(JSON.stringify(capiPayload), /\+919876543210/);
+});
+
+test('Meta CAPI failure never changes a successful Zoho customer response', async () => {
+  let capiCalls = 0;
+  await withMock(async (url) => {
+    if (url.includes('/oauth/')) return tokenResponse();
+    if (url.includes('graph.facebook.com')) { capiCalls += 1; return response(500, {}); }
+    return created('lead-capi-failure');
+  }, async () => {
+    const result = await invoke(valid);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.success, true);
+    assert.equal(result.body.eventId, `vishan_lead_${valid.idempotencyKey}`);
+  }, metaEnv);
+  assert.equal(capiCalls, 1);
+});
+
+test('Zoho failure prevents Meta CAPI Lead', async () => {
+  let capiCalls = 0;
+  await withMock(async (url) => {
+    if (url.includes('/oauth/')) return tokenResponse();
+    if (url.includes('graph.facebook.com')) { capiCalls += 1; return response(200, {}); }
+    return response(400, { data: [{ code: 'INVALID_DATA' }] });
+  }, async () => {
+    const result = await invoke(valid);
+    assert.equal(result.status, 503);
+    assert.equal(result.body.success, false);
+  }, metaEnv);
+  assert.equal(capiCalls, 0);
+});
+
+test('optional Meta test event code is server-side and included only when configured', async () => {
+  let capiPayload;
+  await withMock(async (url, options) => {
+    if (url.includes('/oauth/')) return tokenResponse();
+    if (url.includes('graph.facebook.com')) {
+      capiPayload = JSON.parse(options.body);
+      return response(200, { events_received: 1 });
+    }
+    return created('lead-test-code');
+  }, async () => assert.equal((await invoke(valid)).status, 200), {
+    ...metaEnv,
+    META_TEST_EVENT_CODE: 'TEST12345',
+  });
+  assert.equal(capiPayload.test_event_code, 'TEST12345');
 });
 for (const status of [429, 500, 502, 503, 504]) {
   test(`retries Zoho HTTP ${status} and succeeds on third attempt`, async () => {
@@ -223,5 +318,7 @@ test('source has no IP limiter or phone dedup and logs no secret values', () => 
   assert.match(apiSource, /created: outcome\.created/);
   assert.match(apiSource, /idempotentReplay: outcome\.idempotentReplay/);
   assert.doesNotMatch(apiSource, /console\.(?:info|warn|error)\([^)]*(?:ZOHO_CLIENT_SECRET|ZOHO_REFRESH_TOKEN|access_token|Authorization)/s);
+  assert.doesNotMatch(apiSource, /phone:\s*context\.phone/);
+  assert.doesNotMatch(apiSource, /META_CONVERSIONS_API_ACCESS_TOKEN[^\n]*(?:console|reply)/);
   assert.equal(_test.sanitizedFailure(new TypeError('access-token-value')), 'NETWORK_FAILURE');
 });

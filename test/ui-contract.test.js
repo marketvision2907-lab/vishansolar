@@ -17,6 +17,38 @@ test('keeps analytics events scoped and single-fire guarded', () => {
   assert.equal((html.match(/event:'whatsapp_click'/g) || []).length, 1);
   assert.match(html, /if\(!whatsappTracked\)/);
   assert.doesNotMatch(html, /dataLayer\.push\([^)]*(fullName|phone|location)/);
+  assert.equal((html.match(/fbq\('track','Lead'/g) || []).length, 1);
+  assert.match(html, /\{eventID:eventId\}/);
+  assert.match(html, /if\(result\.eventId===metaEventId\)trackMetaLead\(metaEventId\)/);
+  assert.doesNotMatch(html, /fbq\('track','Lead'[^\n]*(billRange|phone|location)/);
+});
+
+test('implements Pixel and CAPI deduplication identifiers without duplicate base setup', () => {
+  assert.equal((html.match(/fbq\('init', '1623722882692138'\)/g) || []).length, 1);
+  assert.equal((html.match(/fbq\('track', 'PageView'\)/g) || []).length, 1);
+  assert.match(html, /metaEventId='vishan_lead_'\+idempotencyKey/);
+  assert.match(html, /meta:\{[\s\S]*eventId:metaEventId[\s\S]*fbp:metaIds\.fbp[\s\S]*fbc:metaIds\.fbc/);
+  assert.match(html, /function secureUuid\(\)/);
+  assert.match(html, /crypto\.getRandomValues/);
+  assert.doesNotMatch(html, /Math\.random/);
+});
+
+test('persists first-touch Meta and UTM attribution', () => {
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'landing_page_url', 'referrer']) {
+    assert.match(html, new RegExp(`${key}:`));
+  }
+  assert.match(html, /localStorage\.getItem\(ATTRIBUTION_KEY\)/);
+  assert.match(html, /if\(!existing\[key\]&&incoming\[key\]\)existing\[key\]=incoming\[key\]/);
+  assert.match(html, /readCookie\('_fbp'\)/);
+  assert.match(html, /readCookie\('_fbc'\)/);
+  assert.match(html, /fbc='fb\.1\.'\+timestamp\+'\.'\+firstTouch\.fbclid/);
+});
+
+test('secondary Meta events are analytical and never mapped to Lead', () => {
+  for (const event of ['ConsultationCTAClick', 'PhoneClick', 'WhatsAppClick', 'SolarCalculatorUsed']) {
+    assert.match(html, new RegExp(`trackMetaCustom\\('${event}'`));
+  }
+  assert.match(html, /metaEventGuards\[key\]/);
 });
 
 test('success modal has the required content and pausable countdown', () => {
@@ -40,7 +72,7 @@ test('the true LCP image is eager, responsive, and high priority', () => {
 test('keeps one CRM form and the existing lead payload contract', () => {
   assert.equal((html.match(/<form\b/g) || []).length, 1);
   assert.match(html, /fetch\('\/api\/leads'/);
-  for (const key of ['fullName', 'phone', 'billRange', 'location', 'companyWebsite', 'idempotencyKey', 'attribution']) {
+  for (const key of ['fullName', 'phone', 'billRange', 'location', 'companyWebsite', 'idempotencyKey', 'attribution', 'meta']) {
     assert.match(html, new RegExp(`${key}:`));
   }
   assert.doesNotMatch(html, /Monthly Amount|Two-Month Bill Amount|billingPeriod/);

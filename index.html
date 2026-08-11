@@ -965,7 +965,8 @@ function captureFirstTouch(){
     gclid:query.get('gclid')||'',
     fbclid:query.get('fbclid')||'',
     landing_page_url:window.location.href||'',
-    referrer:document.referrer||''
+    referrer:document.referrer||'',
+    captured_at:Date.now()
   };
   Object.keys(incoming).forEach(function(key){
     if(!existing[key]&&incoming[key])existing[key]=incoming[key];
@@ -974,6 +975,31 @@ function captureFirstTouch(){
   return existing;
 }
 var firstTouch=captureFirstTouch();
+
+function readCookie(name){
+  var prefix=name+'=';
+  var parts=document.cookie?document.cookie.split(';'):[];
+  for(var i=0;i<parts.length;i++){
+    var part=parts[i].trim();
+    if(part.indexOf(prefix)===0){
+      try{return decodeURIComponent(part.slice(prefix.length));}catch(e){return part.slice(prefix.length);}
+    }
+  }
+  return '';
+}
+function ensureFbc(){
+  var fbc=readCookie('_fbc');
+  if(fbc||!firstTouch.fbclid)return fbc;
+  var timestamp=Number(firstTouch.captured_at)||Date.now();
+  fbc='fb.1.'+timestamp+'.'+firstTouch.fbclid;
+  var secure=window.location.protocol==='https:'?'; Secure':'';
+  document.cookie='_fbc='+encodeURIComponent(fbc)+'; Max-Age=7776000; Path=/; SameSite=Lax'+secure;
+  return readCookie('_fbc')||fbc;
+}
+function metaIdentifiers(){
+  return {fbp:readCookie('_fbp'),fbc:ensureFbc()};
+}
+ensureFbc();
 
 var WHATSAPP_URL='https://wa.me/916385547200?text='+encodeURIComponent('Hi Vishan Solar, I just submitted a free solar consultation request through your website. I would like to discuss the next steps.');
 var resultModal=document.getElementById('resultModal');
@@ -992,6 +1018,20 @@ var whatsappTracked=false;
 function pushAnalytics(payload){
   window.dataLayer=window.dataLayer||[];
   window.dataLayer.push(payload);
+}
+var metaEventGuards={};
+function trackMetaCustom(eventName,parameters,guardKey){
+  var key=guardKey||eventName;
+  if(metaEventGuards[key])return;
+  metaEventGuards[key]=true;
+  try{if(typeof window.fbq==='function')window.fbq('trackCustom',eventName,parameters||{});}catch(e){}
+}
+function trackMetaLead(eventId){
+  if(!eventId||metaEventGuards[eventId])return;
+  metaEventGuards[eventId]=true;
+  try{
+    if(typeof window.fbq==='function')window.fbq('track','Lead',{content_name:'Free Solar Consultation'},{eventID:eventId});
+  }catch(e){}
 }
 function cancelResultTimer(){
   if(resultTimer){clearInterval(resultTimer);resultTimer=null;}
@@ -1060,6 +1100,7 @@ resultPrimary.addEventListener('click',function(e){
     if(!whatsappTracked){
       whatsappTracked=true;
       pushAnalytics({event:'whatsapp_click',click_location:'lead_success_modal'});
+      trackMetaCustom('WhatsAppClick',{click_location:'lead_success_modal'},'whatsapp_success_modal');
     }
   }
 });
@@ -1130,11 +1171,16 @@ function validateLeadForm(form){
   form.elements.location.value=values.location;
   return values;
 }
-function uuid(){
-  if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
-    var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16);
-  });
+function secureUuid(){
+  if(window.crypto&&window.crypto.randomUUID)return window.crypto.randomUUID();
+  if(!window.crypto||!window.crypto.getRandomValues)throw new Error('SECURE_RANDOM_UNAVAILABLE');
+  var bytes=new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  bytes[6]=(bytes[6]&15)|64;
+  bytes[8]=(bytes[8]&63)|128;
+  var hex=[];
+  for(var i=0;i<bytes.length;i++)hex.push(bytes[i].toString(16).padStart(2,'0'));
+  return hex.slice(0,4).join('')+'-'+hex.slice(4,6).join('')+'-'+hex.slice(6,8).join('')+'-'+hex.slice(8,10).join('')+'-'+hex.slice(10).join('');
 }
 function wait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
 async function submitLeadRequest(payload){
@@ -1181,7 +1227,9 @@ document.querySelectorAll('.crm-lead-form').forEach(function(form){
     button.innerHTML='<span class="submit-spinner" aria-hidden="true"></span><span>Submitting your request...</span>';
     status.textContent='Please wait while we securely submit your details.';
     try{
-      var idempotencyKey=uuid();
+      var idempotencyKey=secureUuid();
+      var metaEventId='vishan_lead_'+idempotencyKey;
+      var metaIds=metaIdentifiers();
       var response=await submitLeadRequest({
           fullName:values.fullName,
           phone:values.phone,
@@ -1189,10 +1237,17 @@ document.querySelectorAll('.crm-lead-form').forEach(function(form){
           location:values.location,
           companyWebsite:form.elements.companyWebsite.value,
           idempotencyKey:idempotencyKey,
-          attribution:firstTouch
+          attribution:firstTouch,
+          meta:{
+            eventId:metaEventId,
+            fbp:metaIds.fbp,
+            fbc:metaIds.fbc,
+            eventSourceUrl:window.location.href
+          }
       });
       var result=await response.json().catch(function(){return {success:false};});
       if(!response.ok||result.success!==true)throw new Error('SUBMISSION_FAILED');
+      if(result.eventId===metaEventId)trackMetaLead(metaEventId);
       form.reset();
       status.textContent='';
       openResultModal(true,form);
@@ -1225,9 +1280,22 @@ document.querySelectorAll('.crm-lead-form').forEach(function(form){
     setTimeout(function(){(focusLocation?document.getElementById('location'):firstName).focus({preventScroll:true});},visible?80:500);
   }
   document.querySelectorAll('.form-cta').forEach(function(btn){
-    btn.addEventListener('click',function(e){e.preventDefault();activateForm(btn.classList.contains('location-cta'),btn.classList.contains('estimate-cta'));});
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      trackMetaCustom('ConsultationCTAClick',{click_location:btn.classList.contains('nav-cta-btn')?'navigation':'page'},'consultation_cta');
+      activateForm(btn.classList.contains('location-cta'),btn.classList.contains('estimate-cta'));
+    });
   });
   document.querySelectorAll('.calc-cta').forEach(function(btn){btn.addEventListener('click',function(){setTimeout(function(){document.getElementById('billSlider').focus({preventScroll:true});},500);});});
+  document.getElementById('billSlider').addEventListener('change',function(){
+    trackMetaCustom('SolarCalculatorUsed',{calculator:'monthly_bill_estimate'},'solar_calculator_used');
+  });
+  document.querySelectorAll('a[href^="tel:"]').forEach(function(link){
+    link.addEventListener('click',function(){trackMetaCustom('PhoneClick',{click_location:'website'},'phone_click');});
+  });
+  document.querySelectorAll('a[href*="wa.me"]').forEach(function(link){
+    link.addEventListener('click',function(){trackMetaCustom('WhatsAppClick',{click_location:'website'},'whatsapp_website');});
+  });
   var sticky=document.getElementById('mobileSticky'),footer=document.querySelector('footer'),editing=false;
   leadForm.addEventListener('focusin',function(){editing=true;sticky.classList.remove('is-visible');});
   leadForm.addEventListener('focusout',function(){setTimeout(function(){editing=leadForm.contains(document.activeElement);},0);});
