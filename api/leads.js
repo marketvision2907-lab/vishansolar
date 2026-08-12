@@ -21,7 +21,7 @@ const ALLOWED_BILL_RANGES = new Set([
 
 const FIELD = Object.freeze({
   lastName: 'Last_Name',
-  phone: 'Phone',
+  phone: 'Mobile',
   websiteSubmissionId: 'Website_Submission_ID',
   city: 'City',
   billRange: 'Monthly_EB_Bill_Range',

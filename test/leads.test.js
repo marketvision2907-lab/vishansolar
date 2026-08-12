@@ -87,7 +87,8 @@ test('rejects invalid phone and honeypot before Zoho', () => {
 test('maps the durable submission ID and exact Zoho fields', () => {
   const record = _test.crmRecord(_test.validate(valid).lead);
   assert.equal(record.Website_Submission_ID, valid.idempotencyKey);
-  assert.equal(record.Phone, '+919876543210');
+  assert.equal(record.Mobile, '+919876543210');
+  assert.equal(Object.hasOwn(record, 'Phone'), false);
   assert.equal(record.Last_Name, valid.fullName);
 });
 test('only Zoho transient statuses are retryable', () => {
