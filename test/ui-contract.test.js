@@ -63,10 +63,36 @@ test('success modal has the required content and pausable countdown', () => {
 });
 
 test('the true LCP image is eager, responsive, and high priority', () => {
-  assert.match(html, /hero-768\.webp 768w, assets\/hero-1600\.webp 1600w/);
+  assert.match(html, /vishan-solar-chennai-family-hero-768\.webp 768w/);
+  assert.match(html, /vishan-solar-chennai-family-hero-1024\.webp 1024w/);
+  assert.match(html, /vishan-solar-chennai-family-hero-1600\.webp 1600w/);
   assert.match(html, /<picture class="hero-bg"/);
   assert.match(html, /fetchpriority="high"/);
+  assert.doesNotMatch(html, /hero-mobile-visual/);
   assert.doesNotMatch(html, /\.hero-bg\{[^}]*background-image/);
+});
+
+test('implements the scoped follow-up metadata and link fixes', () => {
+  assert.match(html, /subsidy guidance and a free home solar assessment/);
+  assert.match(html, /vishan-solar-chennai-family-social-1200x630\.webp/);
+  assert.match(html, /og:image:width" content="1200"/);
+  assert.match(html, /og:image:height" content="630"/);
+  assert.match(html, /<a href="\/" class="logo">/);
+  assert.match(html, /One team from assessment through support/);
+  assert.doesNotMatch(html, /One team from consultation through support/);
+  assert.doesNotMatch(html, /class="logo"[^>]*href="#"|href="#"[^>]*class="logo"/);
+  assert.doesNotMatch(html, /<div class="foot-col"><h5>Our Services<\/h5>[\s\S]*?<a href="#">/);
+  for (const social of ['Facebook', 'Instagram', 'YouTube', 'LinkedIn']) {
+    assert.doesNotMatch(html, new RegExp(`aria-label="${social}"`));
+  }
+  assert.match(html, /class="legal-label">Privacy Policy/);
+  assert.match(html, /class="legal-label">Terms &amp; Conditions/);
+});
+
+test('preserves the documented calculator implementation pending business clarification', () => {
+  assert.match(html, /var save=Math\.round\(bill\*1\.025\/50\)\*50/);
+  const savings = bill => Math.round(bill * 1.025 / 50) * 50;
+  assert.deepEqual([3000, 8000, 15000].map(savings), [3050, 8200, 15350]);
 });
 
 test('keeps one CRM form and the existing lead payload contract', () => {
@@ -111,7 +137,7 @@ test('accepts country-code autofill and retries transient API failures', () => {
 });
 
 test('implements the approved final hero and financing composition', () => {
-  assert.match(html, /grid-template-columns:minmax\(0,1\.35fr\) minmax\(360px,1fr\)/);
+  assert.match(html, /grid-template-columns:41\.5% 37\.5%/);
   assert.match(html, /\.hero-content\{grid-column:1;text-align:left/);
   assert.match(html, /\.lead-form\{grid-column:2;justify-self:stretch/);
   assert.equal((html.match(/class="trust-card"/g) || []).length, 4);
